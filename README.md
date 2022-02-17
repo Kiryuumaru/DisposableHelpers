@@ -20,11 +20,6 @@ Install-Package DisposableHelpers -pre
 ## Supported frameworks
 .NET Standard 2.0 and above - see https://github.com/dotnet/standard/blob/master/docs/versions.md for compatibility matrix
 
-## Get Started
-
-All observable events are executed on thread that was used to create the object instance.
-To use in UI safe updates, create the object instances at the UI thread or manually configure the ISyncObject.SyncOperation to use UI thread.
-
 ## Usage
 
 ### Disposable Sample
