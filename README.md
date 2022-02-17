@@ -47,7 +47,7 @@ namespace YourNamespace
         }
     }
 }
-
+```
 ### Anonymous Disposable Sample
 ```csharp
 using DisposableHelpers;
@@ -72,7 +72,7 @@ namespace YourNamespace
         }
     }
 }
-
+```
 ### AsyncDisposable Sample
 ```csharp
 using DisposableHelpers;
@@ -93,7 +93,7 @@ namespace YourNamespace
         }
     }
 }
-
+```
 ### Anonymous AsyncDisposable Sample
 ```csharp
 using DisposableHelpers;
@@ -118,6 +118,6 @@ namespace YourNamespace
         }
     }
 }
-
+```
 ### Want To Support This Project?
 All I have ever asked is to be active by submitting bugs, features, and sending those pull requests down!.
