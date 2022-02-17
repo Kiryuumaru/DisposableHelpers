@@ -1,6 +1,6 @@
 # DisposableHelpers
 
-Disposable helpers for IDisposable and IAsyncDisposable. Also capable of both anonymous disposable and async disposable.
+Disposable helpers for IDisposable and IAsyncDisposable. Also capable of both anonymous disposable and anonymous async disposable.
 
 **NuGets**
 
