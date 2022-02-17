@@ -13,6 +13,7 @@
     <RepositoryUrl>https://github.com/Kiryuumaru/DisposableHelpers</RepositoryUrl>
     <PackageTags>Disposable, AsyncDisposable, Async, IDisposable, IAsyncDisposable</PackageTags>
     <PackageReleaseNotes>* Initial release</PackageReleaseNotes>
+    <PackageLicenseFile>C:\Users\Kiryuumaru\Repositories\asd\DisposableHelpers\LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
