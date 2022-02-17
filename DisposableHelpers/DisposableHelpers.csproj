@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -9,14 +9,15 @@
     <Company>Kiryuumaru</Company>
     <Description>Disposable helpers for IDisposable and IAsyncDisposable.</Description>
     <PackageProjectUrl>https://github.com/Kiryuumaru/DisposableHelpers</PackageProjectUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/Kiryuumaru/DisposableHelpers</RepositoryUrl>
     <PackageTags>Disposable, AsyncDisposable, Async, IDisposable, IAsyncDisposable</PackageTags>
     <PackageReleaseNotes>* Initial release</PackageReleaseNotes>
-    <PackageLicenseFile>C:\Users\Kiryuumaru\Repositories\asd\DisposableHelpers\LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\LICENSE" Pack="true" PackagePath="" />
     <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
