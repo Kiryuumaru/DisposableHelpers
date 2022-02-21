@@ -15,8 +15,8 @@
     <PackageTags>Disposable, AsyncDisposable, Async, IDisposable, IAsyncDisposable</PackageTags>
     <PackageProjectUrl>https://github.com/Kiryuumaru/DisposableHelpers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Kiryuumaru/DisposableHelpers</RepositoryUrl>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>* Updated package information</PackageReleaseNotes>
     <Version>1.0.1</Version>
   </PropertyGroup>
