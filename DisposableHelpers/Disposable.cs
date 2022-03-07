@@ -36,7 +36,7 @@ namespace DisposableHelpers
         /// <value>
         /// The object name, which defaults to the class name.
         /// </value>
-        protected virtual string ObjectName => GetType().FullName;
+        protected virtual string? ObjectName => GetType().FullName;
 
         private const int DisposalNotStarted = 0;
         private const int DisposalStarted = 1;
@@ -176,7 +176,7 @@ namespace DisposableHelpers
         #endregion
     }
 
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
     /// <summary>
     /// Contains all methods for performing proper <see cref="IAsyncDisposable"/> operations.
     /// </summary>
