@@ -1,4 +1,5 @@
 using DisposableHelpers;
+using DisposableHelpers.Attributes;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,7 +7,22 @@ using Xunit;
 
 namespace DisposableHelpersTest
 {
-    public class DisposeTest : Disposable
+    [Disposable]
+    public partial class BaseDisposeTest
+    {
+        public BaseDisposeTest()
+        {
+            
+        }
+    }
+
+    [AsyncDisposable]
+    public partial class BaseAsyncDisposeTest
+    {
+
+    }
+
+    public class DisposeTest : BaseDisposeTest
     {
         public int DisposeCallCount { get; private set; } = 0;
 
@@ -111,7 +127,7 @@ namespace DisposableHelpersTest
         }
     }
 
-    public class AsyncDisposeTest : AsyncDisposable
+    public class AsyncDisposeTest : BaseAsyncDisposeTest
     {
         public int DisposedCallCount { get; private set; } = 0;
 

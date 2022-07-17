@@ -1,6 +1,6 @@
 # DisposableHelpers
 
-Disposable helpers for IDisposable and IAsyncDisposable. Also capable of both anonymous disposable and anonymous async disposable.
+Disposable helpers for IDisposable and IAsyncDisposable with source generators. Also capable of both anonymous disposable and anonymous async disposable.
 
 **NuGets**
 
@@ -22,7 +22,7 @@ Install-Package DisposableHelpers -pre
 
 ## Usage
 
-### Disposable Sample
+### Disposable Sample 1
 ```csharp
 using DisposableHelpers;
 
@@ -33,6 +33,28 @@ namespace YourNamespace
         private SampleUnmanagedResource resources;
         
         protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                resources.Release();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}
+```
+### Disposable Sample 2
+```csharp
+using DisposableHelpers.Attributes;
+
+namespace YourNamespace
+{
+    [Disposable]
+    public class SampleDisposable
+    {
+        private SampleUnmanagedResource resources;
+        
+        protected void Dispose(bool disposing)
         {
             if (disposing)
             {
@@ -68,7 +90,7 @@ namespace YourNamespace
     }
 }
 ```
-### AsyncDisposable Sample
+### AsyncDisposable Sample 1
 ```csharp
 using DisposableHelpers;
 
@@ -79,6 +101,28 @@ namespace YourNamespace
         private SampleAsyncUnmanagedResource resources;
         
         protected override async ValueTask Dispose(bool isDisposing)
+        {
+            if (isDisposing)
+            {
+                await resources.Release();
+            }
+            return base.Dispose(isDisposing);
+        }
+    }
+}
+```
+### AsyncDisposable Sample 2
+```csharp
+using DisposableHelpers.Attributes;
+
+namespace YourNamespace
+{
+    [AsyncDisposable]
+    public class SampleAsyncDisposable
+    {
+        private SampleAsyncUnmanagedResource resources;
+        
+        protected async ValueTask Dispose(bool isDisposing)
         {
             if (isDisposing)
             {

@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32210.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DisposableHelpers", "DisposableHelpers\DisposableHelpers.csproj", "{54898751-9F8B-452B-96E9-76F0EB4EED93}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DisposableHelpers", "DisposableHelpers\DisposableHelpers.csproj", "{54898751-9F8B-452B-96E9-76F0EB4EED93}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DisposableHelpersTest", "DisposableHelpersTest\DisposableHelpersTest.csproj", "{1A3CE875-833B-4170-A760-F6DE85E09F84}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DisposableHelpers.SourceGenerators", "DisposableHelpers.SourceGenerators\DisposableHelpers.SourceGenerators.csproj", "{5B72807D-6C06-49BC-8BE3-8F2E3F7FB3C0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DisposableHelpersTest", "DisposableHelpersTest\DisposableHelpersTest.csproj", "{658C5F56-39A7-4C20-BEE3-C3BC0BA66BE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +19,14 @@ Global
 		{54898751-9F8B-452B-96E9-76F0EB4EED93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{54898751-9F8B-452B-96E9-76F0EB4EED93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{54898751-9F8B-452B-96E9-76F0EB4EED93}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1A3CE875-833B-4170-A760-F6DE85E09F84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1A3CE875-833B-4170-A760-F6DE85E09F84}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1A3CE875-833B-4170-A760-F6DE85E09F84}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1A3CE875-833B-4170-A760-F6DE85E09F84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B72807D-6C06-49BC-8BE3-8F2E3F7FB3C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B72807D-6C06-49BC-8BE3-8F2E3F7FB3C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B72807D-6C06-49BC-8BE3-8F2E3F7FB3C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B72807D-6C06-49BC-8BE3-8F2E3F7FB3C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{658C5F56-39A7-4C20-BEE3-C3BC0BA66BE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{658C5F56-39A7-4C20-BEE3-C3BC0BA66BE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{658C5F56-39A7-4C20-BEE3-C3BC0BA66BE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{658C5F56-39A7-4C20-BEE3-C3BC0BA66BE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

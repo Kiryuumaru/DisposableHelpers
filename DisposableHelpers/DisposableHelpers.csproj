@@ -12,13 +12,13 @@
     <Company>Kiryuumaru</Company>
     <Copyright>Kiryuumaru</Copyright>
     <Description>Disposable helpers for IDisposable and IAsyncDisposable.</Description>
-    <PackageTags>Disposable, AsyncDisposable, Async, IDisposable, IAsyncDisposable</PackageTags>
+    <PackageTags>Disposable, AsyncDisposable, Async, IDisposable, IAsyncDisposable, SourceGenerator, ISourceGenerator, IIncrementalGenerator, Helpers</PackageTags>
     <PackageProjectUrl>https://github.com/Kiryuumaru/DisposableHelpers</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Kiryuumaru/DisposableHelpers</RepositoryUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>* Added upper frameworks to simplify dependencies</PackageReleaseNotes>
-    <Version>1.0.2</Version>
+    <PackageReleaseNotes>* Updated README.md</PackageReleaseNotes>
+    <Version>1.1.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,4 +26,35 @@
     <None Include="..\README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
+  <!-- Enable trimming support on .NET 6 -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+
+  <!-- .NET Standard 2.0 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+  </ItemGroup>
+
+  <!-- Source generator project reference for packing -->
+  <ItemGroup>
+    <ProjectReference Include="..\DisposableHelpers.SourceGenerators\DisposableHelpers.SourceGenerators.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" PrivateAssets="contentfiles;build" />
+  </ItemGroup>
+
+  <ItemGroup Label="Package">
+
+    <!-- Include the custom .targets file to check the source generator (.NET 6 is not needed as it guarantees Roslyn 4.x) -->
+    <None Include="DisposableHelpers.targets" PackagePath="buildTransitive\netstandard2.0" Pack="true" />
+    <None Include="DisposableHelpers.targets" PackagePath="buildTransitive\netstandard2.1" Pack="true" />
+    <None Include="DisposableHelpers.targets" PackagePath="build\netstandard2.0" Pack="true" />
+    <None Include="DisposableHelpers.targets" PackagePath="build\netstandard2.1" Pack="true" />
+
+    <!-- Pack the source generator to the right package folder -->
+    <None Include="..\DisposableHelpers.SourceGenerators\bin\$(Configuration)\netstandard2.0\DisposableHelpers.SourceGenerators.dll"
+          PackagePath="analyzers\dotnet\roslyn4.0\cs"
+          Pack="true"
+          Visible="false" />
+  </ItemGroup>
+  
 </Project>
