@@ -1,4 +1,5 @@
-﻿using DisposableHelpers.SourceGenerators.Extensions;
+﻿using DisposableHelpers.SourceGenerators.ComponentModel.Models;
+using DisposableHelpers.SourceGenerators.Extensions;
 using DisposableHelpers.SourceGenerators.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,11 +20,11 @@ namespace DisposableHelpers.SourceGenerators
 {
     public abstract partial class TransitiveMembersGenerator<TInfo> : IIncrementalGenerator
     {
+        public ClassDeclarationSyntax ClassDeclaration { get; }
+
         private readonly string attributeType;
 
         private readonly IEqualityComparer<TInfo> comparer;
-
-        private readonly ClassDeclarationSyntax classDeclaration;
 
         private ImmutableArray<MemberDeclarationSyntax> sealedMemberDeclarations;
 
@@ -43,9 +44,9 @@ namespace DisposableHelpers.SourceGenerators
             string source = reader.ReadToEnd();
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
 
-            classDeclaration = syntaxTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+            ClassDeclaration = syntaxTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().First();
 
-            ImmutableArray<MemberDeclarationSyntax> annotatedMemberDeclarations = classDeclaration.Members.ToImmutableArray().Select(member =>
+            ImmutableArray<MemberDeclarationSyntax> annotatedMemberDeclarations = ClassDeclaration.Members.ToImmutableArray().Select(member =>
             {
                 // [GeneratedCode] is always present
                 member =
@@ -100,7 +101,7 @@ namespace DisposableHelpers.SourceGenerators
                 typeSymbols
                 .Select((item, _) => (
                     Symbol: item,
-                    Attribute: item.GetAttributes().FirstOrDefault(a => a.AttributeClass?.HasFullyQualifiedName(this.attributeType) == true)))
+                    Attribute: item.GetAttributes().FirstOrDefault(a => a.AttributeClass?.HasFullyQualifiedName(attributeType) == true)))
                 .Where(static item => item.Attribute is not null)!;
 
             // Transform the input data
@@ -132,13 +133,13 @@ namespace DisposableHelpers.SourceGenerators
                 .Where(static item => item.Errors.IsEmpty)
                 .Select(static (item, _) => item.Value)
                 .WithComparers(HierarchyInfo.Comparer.Default, EqualityComparer<bool>.Default, comparer);
-
+            
             // Generate the required members
             context.RegisterSourceOutput(generationInfo, (context, item) =>
             {
                 ImmutableArray<MemberDeclarationSyntax> sourceMemberDeclarations = item.IsSealed ? sealedMemberDeclarations : nonSealedMemberDeclarations;
                 ImmutableArray<MemberDeclarationSyntax> filteredMemberDeclarations = FilterDeclaredMembers(item.Info, sourceMemberDeclarations);
-                CompilationUnitSyntax compilationUnit = item.Hierarchy.GetCompilationUnit(filteredMemberDeclarations, this.classDeclaration.BaseList);
+                CompilationUnitSyntax compilationUnit = GetCompilationUnit(context, item.Info, item.Hierarchy, item.IsSealed, filteredMemberDeclarations);
 
                 context.AddSource(item.Hierarchy.FilenameHint, compilationUnit.ToFullString());
             });
@@ -151,5 +152,7 @@ namespace DisposableHelpers.SourceGenerators
             IncrementalValuesProvider<(INamedTypeSymbol Symbol, AttributeData AttributeData)> source);
 
         protected abstract ImmutableArray<MemberDeclarationSyntax> FilterDeclaredMembers(TInfo info, ImmutableArray<MemberDeclarationSyntax> memberDeclarations);
+
+        protected abstract CompilationUnitSyntax GetCompilationUnit(SourceProductionContext sourceProductionContext, TInfo info, HierarchyInfo hierarchyInfo, bool isSealed, ImmutableArray<MemberDeclarationSyntax> memberDeclarations);
     }
 }

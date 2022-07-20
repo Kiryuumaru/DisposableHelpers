@@ -9,4 +9,5 @@ namespace DisposableHelpers.SourceGenerators.ComponentModel.Models;
 public sealed record DisposableInfo(
     string TypeName,
     bool HasExplicitDestructors,
+    bool HasImplementedIDisposable,
     IMethodSymbol? DisposeMethod);

@@ -1,6 +1,7 @@
 ﻿using DisposableHelpers.SourceGenerators.ComponentModel.Models;
 using DisposableHelpers.SourceGenerators.Diagnostics;
 using DisposableHelpers.SourceGenerators.Extensions;
+using DisposableHelpers.SourceGenerators.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,7 +16,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 namespace DisposableHelpers.SourceGenerators
 {
     [Generator(LanguageNames.CSharp)]
-    public sealed partial class DisposableGenerator : TransitiveMembersGenerator<DisposableInfo>
+    internal sealed partial class DisposableGenerator : TransitiveMembersGenerator<DisposableInfo>
     {
         public DisposableGenerator()
             : base("global::DisposableHelpers.Attributes.DisposableAttribute")
@@ -31,6 +32,7 @@ namespace DisposableHelpers.SourceGenerators
             {
                 string typeName = typeSymbol.Name;
                 bool hasExplicitDestructors = typeSymbol.GetMembers().Any(m => m is IMethodSymbol symbol && symbol.MethodKind == MethodKind.Destructor);
+                bool hasImplementedIDisposable = typeSymbol.AllInterfaces.Any(i => i.HasFullyQualifiedName("global::System.IDisposable"));
                 var disposeMethod = typeSymbol.GetMembers().FirstOrDefault(i =>
                     i is IMethodSymbol symbol &&
                     symbol.Name == "Dispose" &&
@@ -40,6 +42,7 @@ namespace DisposableHelpers.SourceGenerators
                 return new(
                     typeName,
                     hasExplicitDestructors,
+                    hasImplementedIDisposable,
                     disposeMethod as IMethodSymbol);
             }
 
@@ -51,16 +54,6 @@ namespace DisposableHelpers.SourceGenerators
         protected override bool ValidateTargetType(INamedTypeSymbol typeSymbol, DisposableInfo info, out ImmutableArray<Diagnostic> diagnostics)
         {
             ImmutableArray<Diagnostic>.Builder builder = ImmutableArray.CreateBuilder<Diagnostic>();
-
-            // Check if the type already implements IDisposable...
-            if (typeSymbol.AllInterfaces.Any(i => i.HasFullyQualifiedName("global::System.IDisposable")))
-            {
-                builder.Add(DuplicateIDisposableInterfaceForDisposableAttributeError, typeSymbol, typeSymbol);
-
-                diagnostics = builder.ToImmutable();
-
-                return false;
-            }
 
             // Check if the type uses [DisposableAttribute] already (in the type hierarchy too)
             if (typeSymbol.InheritsAttributeWithFullyQualifiedName("global::DisposableHelpers.Attributes.DisposableAttribute"))
@@ -95,7 +88,7 @@ namespace DisposableHelpers.SourceGenerators
 
             MemberDeclarationSyntax? FixupFilteredMemberDeclaration(MemberDeclarationSyntax member)
             {
-                // Remove Dispose(bool) if the type already has the method
+                // Remove Dispose(bool) if the target type already has the method
                 if (info.DisposeMethod != null &&
                     member is MethodDeclarationSyntax syntax &&
                     syntax.Identifier.ValueText == "Dispose" &&
@@ -119,6 +112,18 @@ namespace DisposableHelpers.SourceGenerators
             }
 
             return builder.ToImmutable();
+        }
+
+        protected override CompilationUnitSyntax GetCompilationUnit(SourceProductionContext sourceProductionContext, DisposableInfo info, HierarchyInfo hierarchyInfo, bool isSealed, ImmutableArray<MemberDeclarationSyntax> memberDeclarations)
+        {
+            if (info.HasImplementedIDisposable)
+            {
+                return hierarchyInfo.GetCompilationUnit(memberDeclarations);
+            }
+            else
+            {
+                return hierarchyInfo.GetCompilationUnit(memberDeclarations, ClassDeclaration.BaseList);
+            }
         }
     }
 }

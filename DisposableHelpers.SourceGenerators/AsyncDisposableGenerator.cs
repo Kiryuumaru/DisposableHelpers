@@ -1,6 +1,7 @@
 ﻿using DisposableHelpers.SourceGenerators.ComponentModel.Models;
 using DisposableHelpers.SourceGenerators.Diagnostics;
 using DisposableHelpers.SourceGenerators.Extensions;
+using DisposableHelpers.SourceGenerators.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,11 +12,12 @@ using System.Linq;
 using System.Text;
 using static DisposableHelpers.SourceGenerators.Diagnostics.DiagnosticDescriptors;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DisposableHelpers.SourceGenerators
 {
     [Generator(LanguageNames.CSharp)]
-    public sealed partial class AsyncDisposableGenerator : TransitiveMembersGenerator<AsyncDisposableInfo>
+    internal sealed partial class AsyncDisposableGenerator : TransitiveMembersGenerator<AsyncDisposableInfo>
     {
         public AsyncDisposableGenerator()
             : base("global::DisposableHelpers.Attributes.AsyncDisposableAttribute")
@@ -31,6 +33,7 @@ namespace DisposableHelpers.SourceGenerators
             {
                 string typeName = typeSymbol.Name;
                 bool hasExplicitDestructors = typeSymbol.GetMembers().Any(m => m is IMethodSymbol symbol && symbol.MethodKind == MethodKind.Destructor);
+                bool hasImplementedIAsyncDisposable = typeSymbol.AllInterfaces.Any(i => i.HasFullyQualifiedName("global::System.IAsyncDisposable"));
                 var disposeAsyncMethod = typeSymbol.GetMembers().FirstOrDefault(i =>
                     i is IMethodSymbol symbol &&
                     symbol.Name == "DisposeAsync" &&
@@ -40,6 +43,7 @@ namespace DisposableHelpers.SourceGenerators
                 return new(
                     typeName,
                     hasExplicitDestructors,
+                    hasImplementedIAsyncDisposable,
                     disposeAsyncMethod as IMethodSymbol);
             }
 
@@ -52,20 +56,10 @@ namespace DisposableHelpers.SourceGenerators
         {
             ImmutableArray<Diagnostic>.Builder builder = ImmutableArray.CreateBuilder<Diagnostic>();
 
-            // Check if the type already implements IDisposable...
-            if (typeSymbol.AllInterfaces.Any(i => i.HasFullyQualifiedName("global::System.IAsyncDisposable")))
-            {
-                builder.Add(DuplicateIDisposableInterfaceForDisposableAttributeError, typeSymbol, typeSymbol);
-
-                diagnostics = builder.ToImmutable();
-
-                return false;
-            }
-
             // Check if the type uses [AsyncDisposableAttribute] already (in the type hierarchy too)
             if (typeSymbol.InheritsAttributeWithFullyQualifiedName("global::DisposableHelpers.Attributes.AsyncDisposableAttribute"))
             {
-                builder.Add(InvalidAttributeCombinationForDisposableAttributeError, typeSymbol, typeSymbol);
+                builder.Add(InvalidAttributeCombinationForAsyncDisposableAttributeError, typeSymbol, typeSymbol);
 
                 diagnostics = builder.ToImmutable();
 
@@ -95,7 +89,7 @@ namespace DisposableHelpers.SourceGenerators
 
             MemberDeclarationSyntax? FixupFilteredMemberDeclaration(MemberDeclarationSyntax member)
             {
-                // Remove Dispose(bool) if the type already has the method
+                // Remove Dispose(bool) if the target type already has the method
                 if (info.DisposeAsyncMethod != null &&
                     member is MethodDeclarationSyntax syntax &&
                     syntax.Identifier.ValueText == "DisposeAsync" &&
@@ -119,6 +113,18 @@ namespace DisposableHelpers.SourceGenerators
             }
 
             return builder.ToImmutable();
+        }
+
+        protected override CompilationUnitSyntax GetCompilationUnit(SourceProductionContext sourceProductionContext, AsyncDisposableInfo info, HierarchyInfo hierarchyInfo, bool isSealed, ImmutableArray<MemberDeclarationSyntax> memberDeclarations)
+        {
+            if (info.HasImplementedIAsyncDisposable)
+            {
+                return hierarchyInfo.GetCompilationUnit(memberDeclarations);
+            }
+            else
+            {
+                return hierarchyInfo.GetCompilationUnit(memberDeclarations, ClassDeclaration.BaseList);
+            }
         }
     }
 }

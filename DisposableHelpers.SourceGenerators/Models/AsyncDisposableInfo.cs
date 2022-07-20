@@ -9,4 +9,5 @@ namespace DisposableHelpers.SourceGenerators.ComponentModel.Models;
 public sealed record AsyncDisposableInfo(
     string TypeName,
     bool HasExplicitDestructors,
+    bool HasImplementedIAsyncDisposable,
     IMethodSymbol? DisposeAsyncMethod);
