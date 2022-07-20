@@ -17,7 +17,7 @@
     <RepositoryUrl>https://github.com/Kiryuumaru/DisposableHelpers</RepositoryUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>* Fixed error if target type interface already implemented in generators</PackageReleaseNotes>
+    <PackageReleaseNotes>* Updated README.md</PackageReleaseNotes>
     <Version>1.1.5</Version>
   </PropertyGroup>
 

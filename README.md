@@ -22,7 +22,7 @@ Install-Package DisposableHelpers -pre
 
 ## Usage
 
-### Disposable Sample 1
+### Disposable
 ```csharp
 using DisposableHelpers;
 
@@ -43,14 +43,14 @@ namespace YourNamespace
     }
 }
 ```
-### Disposable Sample 2
+### Disposable Source Generator
 ```csharp
 using DisposableHelpers.Attributes;
 
 namespace YourNamespace
 {
     [Disposable]
-    public class SampleDisposable
+    public partial class SampleDisposable
     {
         private SampleUnmanagedResource resources;
         
@@ -65,7 +65,7 @@ namespace YourNamespace
     }
 }
 ```
-### Anonymous Disposable Sample
+### Anonymous Disposable
 ```csharp
 using DisposableHelpers;
 
@@ -90,7 +90,7 @@ namespace YourNamespace
     }
 }
 ```
-### AsyncDisposable Sample 1
+### AsyncDisposable
 ```csharp
 using DisposableHelpers;
 
@@ -111,14 +111,14 @@ namespace YourNamespace
     }
 }
 ```
-### AsyncDisposable Sample 2
+### AsyncDisposable Source Generator
 ```csharp
 using DisposableHelpers.Attributes;
 
 namespace YourNamespace
 {
     [AsyncDisposable]
-    public class SampleAsyncDisposable
+    public partial class SampleAsyncDisposable
     {
         private SampleAsyncUnmanagedResource resources;
         
@@ -133,7 +133,7 @@ namespace YourNamespace
     }
 }
 ```
-### Anonymous AsyncDisposable Sample
+### Anonymous AsyncDisposable
 ```csharp
 using DisposableHelpers;
 
