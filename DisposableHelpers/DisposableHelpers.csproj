@@ -8,6 +8,9 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <Authors>Kiryuumaru</Authors>
     <Company>Kiryuumaru</Company>
     <Copyright>Kiryuumaru</Copyright>
@@ -17,8 +20,10 @@
     <RepositoryUrl>https://github.com/Kiryuumaru/DisposableHelpers</RepositoryUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <PackageReleaseNotes>* Updated README.md</PackageReleaseNotes>
-    <Version>1.1.6</Version>
   </PropertyGroup>
 
   <ItemGroup>
