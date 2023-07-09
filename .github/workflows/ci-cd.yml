@@ -106,8 +106,6 @@ jobs:
                 fi
               fi
               # ███████████████████████ Validate version █████████████████████████
-              echo "version1=$(semver validate "${version}")"
-              echo "version=${version}"
               if [ $(semver validate "${version}") != 'valid' ]; then
                 echo "::error file=${version_file},title=Version Control::Version file is not valid."
                 exit 1
