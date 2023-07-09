@@ -1,0 +1,9 @@
+[
+  {
+    "enable": true,
+    "id": "disposableHelpers_nuget_test",
+    "name": "DisposableHelpers Test",
+    "project_dir": "DisposableHelpers.UnitTest",
+    "builds_on": "ubuntu-22.04"
+  }
+]
