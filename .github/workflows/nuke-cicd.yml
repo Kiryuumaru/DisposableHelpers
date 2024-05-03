@@ -42,6 +42,22 @@ jobs:
       NUKE_PRE_SETUP_OUTPUT_TEST_MATRIX: ${{ steps.NUKE_PRE_SETUP_OUTPUT_TEST_MATRIX.outputs.NUKE_PRE_SETUP_OUTPUT_TEST_MATRIX }}
       NUKE_PRE_SETUP_OUTPUT_BUILD_MATRIX: ${{ steps.NUKE_PRE_SETUP_OUTPUT_BUILD_MATRIX.outputs.NUKE_PRE_SETUP_OUTPUT_BUILD_MATRIX }}
       NUKE_PRE_SETUP_OUTPUT_PUBLISH_MATRIX: ${{ steps.NUKE_PRE_SETUP_OUTPUT_PUBLISH_MATRIX.outputs.NUKE_PRE_SETUP_OUTPUT_PUBLISH_MATRIX }}
+  test:
+    name: Test - ${{ matrix.name }}
+    runs-on: ${{ matrix.runs_on }}
+    steps:
+    - uses: actions/checkout@v4
+      if: ${{ matrix.id != 'skip' }}
+    - name: Run Nuke PipelineTest
+      run: ${{ matrix.build_script }} PipelineTest --args "${{ matrix.ids_to_run }}"
+      if: ${{ matrix.id != 'skip' }}
+    needs:
+    - pre_setup
+    env:
+      NUKE_PRE_SETUP_OUTPUT: ${{ needs.pre_setup.outputs.NUKE_PRE_SETUP_OUTPUT }}
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.pre_setup.outputs.NUKE_PRE_SETUP_OUTPUT_TEST_MATRIX) }}
   build:
     name: Build - ${{ matrix.name }}
     runs-on: ${{ matrix.runs_on }}
@@ -61,6 +77,7 @@ jobs:
         retention-days: 1
     needs:
     - pre_setup
+    - test
     if: ${{ needs.pre_setup.outputs.NUKE_PRE_SETUP_HAS_RELEASE == 'true' }}
     env:
       NUKE_PRE_SETUP_OUTPUT: ${{ needs.pre_setup.outputs.NUKE_PRE_SETUP_OUTPUT }}
@@ -85,6 +102,7 @@ jobs:
         NUKE_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     needs:
     - pre_setup
+    - test
     - build
     if: ${{ needs.pre_setup.outputs.NUKE_PRE_SETUP_HAS_RELEASE == 'true' }}
     env:
@@ -111,6 +129,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     needs:
     - pre_setup
+    - test
     - build
     - publish
     if: success() || failure() || always()
