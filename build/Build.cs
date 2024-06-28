@@ -36,9 +36,9 @@ class Build : BaseNukeBuildHelpers
         .Execute(() =>
         {
             DotNetTasks.DotNetClean(_ => _
-                .SetProject(RootDirectory / "DisposableHelpers.UnitTest" / "DisposableHelpers.UnitTest.csproj"));
+                .SetProject(RootDirectory / "DisposableHelpersTest" / "DisposableHelpersTest.csproj"));
             DotNetTasks.DotNetTest(_ => _
-                .SetProjectFile(RootDirectory / "DisposableHelpers.UnitTest" / "DisposableHelpers.UnitTest.csproj"));
+                .SetProjectFile(RootDirectory / "DisposableHelpersTest" / "DisposableHelpersTest.csproj"));
         });
 
     BuildEntry DisposableHelpersBuild => _ => _
