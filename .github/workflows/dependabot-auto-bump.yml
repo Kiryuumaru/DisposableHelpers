@@ -1,4 +1,4 @@
-﻿name: Dependabot Pull Request Approve and Merge
+﻿name: Dependabot Pull Request Bump
 
 on:
   push:
