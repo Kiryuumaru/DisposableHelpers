@@ -23,4 +23,4 @@ jobs:
       - name: Start nuke auto-bump
         run: chmod +x ./build.sh && ./build.sh BumpAndForget --args "disposable_helpers=patch"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
