@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -9,11 +9,12 @@
     <NukeScriptDirectory>..</NukeScriptDirectory>
     <NukeTelemetryVersion>1</NukeTelemetryVersion>
     <IsPackable>false</IsPackable>
+	<Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Nuke.Common" Version="8.0.0" />
-    <PackageReference Include="NukeBuildHelpers" Version="1.0.2" />
+    <PackageReference Include="NukeBuildHelpers" Version="3.2.0" />
   </ItemGroup>
 
 </Project>
