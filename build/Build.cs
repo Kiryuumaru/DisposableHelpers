@@ -44,7 +44,7 @@ class Build : BaseNukeBuildHelpers
     BuildEntry DisposableHelpersBuild => _ => _
         .AppId("disposable_helpers")
         .RunnerOS(RunnerOS.Ubuntu2204)
-        .Condition(true)
+        .CommonReleaseAsset(OutputDirectory)
         .Execute(context =>
         {
             string version = "0.0.0";
@@ -72,7 +72,7 @@ class Build : BaseNukeBuildHelpers
                 .SetIncludeSymbols(true)
                 .SetSymbolPackageFormat("snupkg")
                 .SetVersion(version)
-                .SetPackageReleaseNotes(releaseNotes)
+                .SetPackageReleaseNotes(NormalizeReleaseNotes(releaseNotes))
                 .SetOutputDirectory(OutputDirectory));
         });
 
@@ -93,4 +93,12 @@ class Build : BaseNukeBuildHelpers
                     .SetTargetPath(OutputDirectory / "**"));
             }
         });
+
+    private string? NormalizeReleaseNotes(string? releaseNotes)
+    {
+        return releaseNotes?
+            .Replace(",", "%2C")?
+            .Replace(":", "%3A")?
+            .Replace(";", "%3B");
+    }
 }
