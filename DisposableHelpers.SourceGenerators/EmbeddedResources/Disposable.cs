@@ -127,7 +127,7 @@ public class Disposable : global::System.IDisposable
     /// </summary>
     /// <param name="cancellationToken">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
     /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposed.</returns>
-    public global::System.Threading.CancellationToken CancelWhenDisposing(global::System.Threading.CancellationToken cancellationToken)
+    public global::System.Threading.CancellationToken CancelWhenDisposed(global::System.Threading.CancellationToken cancellationToken)
     {
         var linkedCts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
@@ -146,7 +146,7 @@ public class Disposable : global::System.IDisposable
     /// </summary>
     /// <param name="cancellationToken">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
     /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposing.</returns>
-    public global::System.Threading.CancellationToken CancelWhenDisposed(global::System.Threading.CancellationToken cancellationToken)
+    public global::System.Threading.CancellationToken CancelWhenDisposing(global::System.Threading.CancellationToken cancellationToken)
     {
         var linkedCts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
