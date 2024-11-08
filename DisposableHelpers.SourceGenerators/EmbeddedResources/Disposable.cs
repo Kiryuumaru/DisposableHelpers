@@ -87,77 +87,77 @@ public class Disposable : global::System.IDisposable
     }
 
     /// <summary>
-    /// Registers a <see cref="CancellationTokenSource"/> to be canceled when the object is fully disposed.
+    /// Returns a <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is fully disposed.
     /// </summary>
-    /// <param name="cancellationTokenSource">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
-    public void CancelWhenDisposed(global::System.Threading.CancellationTokenSource cancellationTokenSource)
-    {
-        if (cancellationTokenSource == null)
-            throw new global::System.ArgumentNullException(nameof(cancellationTokenSource));
-
-        if (IsDisposed)
-        {
-            cancellationTokenSource.Cancel();
-        }
-        else
-        {
-            cancelOnDisposeSources.Add(cancellationTokenSource);
-        }
-    }
-
-    /// <summary>
-    /// Registers a <see cref="CancellationTokenSource"/> to be canceled when the object starts disposing.
-    /// </summary>
-    /// <param name="cancellationTokenSource">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
-    public void CancelWhenDisposing(global::System.Threading.CancellationTokenSource cancellationTokenSource)
-    {
-        if (cancellationTokenSource == null)
-            throw new global::System.ArgumentNullException(nameof(cancellationTokenSource));
-
-        if (IsDisposedOrDisposing)
-        {
-            cancellationTokenSource.Cancel();
-        }
-        else
-        {
-            cancelOnDisposingSources.Add(cancellationTokenSource);
-        }
-    }
-
-    /// <summary>
-    /// Registers a <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled when the object is fully disposed and returns its <see cref="global::System.Threading.CancellationToken"/>.
-    /// </summary>
-    /// <returns>A <see cref="CancellationToken"/> that will be canceled when the object is disposed.</returns>
+    /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposed.</returns>
     public global::System.Threading.CancellationToken CancelWhenDisposed()
     {
         var cancellationTokenSource = new global::System.Threading.CancellationTokenSource();
+
+        cancelOnDisposeSources.Add(cancellationTokenSource);
+
         if (IsDisposed)
         {
             cancellationTokenSource.Cancel();
         }
-        else
-        {
-            cancelOnDisposeSources.Add(cancellationTokenSource);
-        }
+
         return cancellationTokenSource.Token;
     }
 
     /// <summary>
-    /// Registers a <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled when the object starts disposing and returns its <see cref="global::System.Threading.CancellationToken"/>.
+    /// Returns a <see cref="global::System.Threading.CancellationToken"/> to be canceled when the object starts disposing.
     /// </summary>
-    /// <returns>A <see cref="CancellationToken"/> that will be canceled when the object starts disposing.</returns>
+    /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object starts disposing.</returns>
     public global::System.Threading.CancellationToken CancelWhenDisposing()
     {
         var cancellationTokenSource = new global::System.Threading.CancellationTokenSource();
+
+        cancelOnDisposingSources.Add(cancellationTokenSource);
+
         if (IsDisposedOrDisposing)
         {
             cancellationTokenSource.Cancel();
         }
-        else
-        {
-            cancelOnDisposingSources.Add(cancellationTokenSource);
-        }
+
         return cancellationTokenSource.Token;
+    }
+
+    /// <summary>
+    /// Returns a <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is fully disposed, or when the provided <paramref name="cancellationToken"/> is canceled.
+    /// </summary>
+    /// <param name="cancellationToken">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
+    /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposed.</returns>
+    public global::System.Threading.CancellationToken CancelWhenDisposing(global::System.Threading.CancellationToken cancellationToken)
+    {
+        var linkedCts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        cancelOnDisposeSources.Add(linkedCts);
+
+        if (IsDisposed)
+        {
+            linkedCts.Cancel();
+        }
+
+        return linkedCts.Token;
+    }
+
+    /// <summary>
+    /// Returns a <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object starts disposing, or when the provided <paramref name="cancellationToken"/> is canceled.
+    /// </summary>
+    /// <param name="cancellationToken">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
+    /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposing.</returns>
+    public global::System.Threading.CancellationToken CancelWhenDisposed(global::System.Threading.CancellationToken cancellationToken)
+    {
+        var linkedCts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        cancelOnDisposingSources.Add(linkedCts);
+
+        if (IsDisposedOrDisposing)
+        {
+            linkedCts.Cancel();
+        }
+
+        return linkedCts.Token;
     }
 
     /// <summary>

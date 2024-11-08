@@ -45,12 +45,10 @@ namespace DisposableHelpersTest
             {
                 disposingCallCount++;
             };
-            CancellationTokenSource ctsDisposing1 = new();
-            CancellationTokenSource ctsDisposed1 = new();
-            CancellationToken ctsDisposing2 = dispose.CancelWhenDisposing();
-            CancellationToken ctsDisposed2 = dispose.CancelWhenDisposed();
-            dispose.CancelWhenDisposing(ctsDisposing1);
-            dispose.CancelWhenDisposed(ctsDisposed1);
+            CancellationToken ctsDisposing1 = dispose.CancelWhenDisposing();
+            CancellationToken ctsDisposed1 = dispose.CancelWhenDisposed();
+            CancellationToken ctsDisposing2 = dispose.CancelWhenDisposing(new CancellationTokenSource().Token);
+            CancellationToken ctsDisposed2 = dispose.CancelWhenDisposed(new CancellationTokenSource().Token);
             Assert.Equal(0, dispose.DisposeCallCount);
             Assert.Equal(0, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -114,12 +112,10 @@ namespace DisposableHelpersTest
             {
                 disposingCallCount++;
             };
-            CancellationTokenSource ctsDisposing1 = new();
-            CancellationTokenSource ctsDisposed1 = new();
-            CancellationToken ctsDisposing2 = dispose.CancelWhenDisposing();
-            CancellationToken ctsDisposed2 = dispose.CancelWhenDisposed();
-            dispose.CancelWhenDisposing(ctsDisposing1);
-            dispose.CancelWhenDisposed(ctsDisposed1);
+            CancellationToken ctsDisposing1 = dispose.CancelWhenDisposing();
+            CancellationToken ctsDisposed1 = dispose.CancelWhenDisposed();
+            CancellationToken ctsDisposing2 = dispose.CancelWhenDisposing(new CancellationTokenSource().Token);
+            CancellationToken ctsDisposed2 = dispose.CancelWhenDisposed(new CancellationTokenSource().Token);
             Assert.Equal(0, disposeCallCount);
             Assert.Equal(0, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -186,12 +182,10 @@ namespace DisposableHelpersTest
             {
                 disposingCallCount++;
             };
-            CancellationTokenSource ctsDisposing1 = new();
-            CancellationTokenSource ctsDisposed1 = new();
-            CancellationToken ctsDisposing2 = dispose.CancelWhenDisposing();
-            CancellationToken ctsDisposed2 = dispose.CancelWhenDisposed();
-            dispose.CancelWhenDisposing(ctsDisposing1);
-            dispose.CancelWhenDisposed(ctsDisposed1);
+            CancellationToken ctsDisposing1 = dispose.CancelWhenDisposing();
+            CancellationToken ctsDisposed1 = dispose.CancelWhenDisposed();
+            CancellationToken ctsDisposing2 = dispose.CancelWhenDisposing(new CancellationTokenSource().Token);
+            CancellationToken ctsDisposed2 = dispose.CancelWhenDisposed(new CancellationTokenSource().Token);
             Assert.Equal(0, dispose.DisposedCallCount);
             Assert.Equal(0, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -255,12 +249,10 @@ namespace DisposableHelpersTest
             {
                 disposingCallCount++;
             };
-            CancellationTokenSource ctsDisposing1 = new();
-            CancellationTokenSource ctsDisposed1 = new();
-            CancellationToken ctsDisposing2 = dispose.CancelWhenDisposing();
-            CancellationToken ctsDisposed2 = dispose.CancelWhenDisposed();
-            dispose.CancelWhenDisposing(ctsDisposing1);
-            dispose.CancelWhenDisposed(ctsDisposed1);
+            CancellationToken ctsDisposing1 = dispose.CancelWhenDisposing();
+            CancellationToken ctsDisposed1 = dispose.CancelWhenDisposed();
+            CancellationToken ctsDisposing2 = dispose.CancelWhenDisposing(new CancellationTokenSource().Token);
+            CancellationToken ctsDisposed2 = dispose.CancelWhenDisposed(new CancellationTokenSource().Token);
             Assert.Equal(0, disposeCallCount);
             Assert.Equal(0, disposingCallCount);
             Assert.False(dispose.IsDisposed);
