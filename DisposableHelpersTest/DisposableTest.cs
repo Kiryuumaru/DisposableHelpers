@@ -37,19 +37,25 @@ namespace DisposableHelpersTest
         }
 
         [Fact]
-        public async void Normal()
+        public async Task Normal()
         {
+            CancellationTokenSource ctsDisposing = new();
+            CancellationTokenSource ctsDisposed = new();
             int disposingCallCount = 0;
             var dispose = new DisposeTest();
             dispose.Disposing += (s, e) =>
             {
                 disposingCallCount++;
             };
+            dispose.CancelWhenDisposing(ctsDisposing);
+            dispose.CancelWhenDisposed(ctsDisposed);
             Assert.Equal(0, dispose.DisposeCallCount);
             Assert.Equal(0, disposingCallCount);
             Assert.False(dispose.IsDisposed);
             Assert.False(dispose.IsDisposing);
             Assert.False(dispose.IsDisposedOrDisposing);
+            Assert.False(ctsDisposing.IsCancellationRequested);
+            Assert.False(ctsDisposed.IsCancellationRequested);
             Task run = Task.Run(async delegate
             {
                 await Task.Delay(1).ConfigureAwait(false);
@@ -63,6 +69,8 @@ namespace DisposableHelpersTest
             Assert.False(dispose.IsDisposed);
             Assert.True(dispose.IsDisposing);
             Assert.True(dispose.IsDisposedOrDisposing);
+            Assert.True(ctsDisposing.IsCancellationRequested);
+            Assert.False(ctsDisposed.IsCancellationRequested);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposing);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposedOrDisposing);
             await Task.Delay(1500);
@@ -71,6 +79,8 @@ namespace DisposableHelpersTest
             Assert.True(dispose.IsDisposed);
             Assert.False(dispose.IsDisposing);
             Assert.True(dispose.IsDisposedOrDisposing);
+            Assert.True(ctsDisposing.IsCancellationRequested);
+            Assert.True(ctsDisposed.IsCancellationRequested);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposed);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposedOrDisposing);
             runVoid();
@@ -80,8 +90,10 @@ namespace DisposableHelpersTest
         }
 
         [Fact]
-        public async void Anonimous()
+        public async Task Anonimous()
         {
+            CancellationTokenSource ctsDisposing = new();
+            CancellationTokenSource ctsDisposed = new();
             int disposeCallCount = 0;
             int disposingCallCount = 0;
             var dispose = new Disposable(disposing =>
@@ -96,11 +108,15 @@ namespace DisposableHelpersTest
             {
                 disposingCallCount++;
             };
+            dispose.CancelWhenDisposing(ctsDisposing);
+            dispose.CancelWhenDisposed(ctsDisposed);
             Assert.Equal(0, disposeCallCount);
             Assert.Equal(0, disposingCallCount);
             Assert.False(dispose.IsDisposed);
             Assert.False(dispose.IsDisposing);
             Assert.False(dispose.IsDisposedOrDisposing);
+            Assert.False(ctsDisposing.IsCancellationRequested);
+            Assert.False(ctsDisposed.IsCancellationRequested);
             Task run = Task.Run(async delegate
             {
                 await Task.Delay(1).ConfigureAwait(false);
@@ -114,6 +130,8 @@ namespace DisposableHelpersTest
             Assert.False(dispose.IsDisposed);
             Assert.True(dispose.IsDisposing);
             Assert.True(dispose.IsDisposedOrDisposing);
+            Assert.True(ctsDisposing.IsCancellationRequested);
+            Assert.False(ctsDisposed.IsCancellationRequested);
             await Task.Delay(1500);
             Assert.Equal(1, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
@@ -124,6 +142,8 @@ namespace DisposableHelpersTest
             await Task.Delay(1500);
             Assert.Equal(1, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
+            Assert.True(ctsDisposing.IsCancellationRequested);
+            Assert.True(ctsDisposed.IsCancellationRequested);
         }
     }
 
@@ -142,19 +162,25 @@ namespace DisposableHelpersTest
         }
 
         [Fact]
-        public async void Normal()
+        public async Task Normal()
         {
+            CancellationTokenSource ctsDisposing = new();
+            CancellationTokenSource ctsDisposed = new();
             int disposingCallCount = 0;
             var dispose = new AsyncDisposeTest();
             dispose.Disposing += (s, e) =>
             {
                 disposingCallCount++;
             };
+            dispose.CancelWhenDisposing(ctsDisposing);
+            dispose.CancelWhenDisposed(ctsDisposed);
             Assert.Equal(0, dispose.DisposedCallCount);
             Assert.Equal(0, disposingCallCount);
             Assert.False(dispose.IsDisposed);
             Assert.False(dispose.IsDisposing);
             Assert.False(dispose.IsDisposedOrDisposing);
+            Assert.False(ctsDisposing.IsCancellationRequested);
+            Assert.False(ctsDisposed.IsCancellationRequested);
             Task run = Task.Run(async delegate
             {
                 await Task.Delay(1).ConfigureAwait(false);
@@ -168,6 +194,8 @@ namespace DisposableHelpersTest
             Assert.False(dispose.IsDisposed);
             Assert.True(dispose.IsDisposing);
             Assert.True(dispose.IsDisposedOrDisposing);
+            Assert.True(ctsDisposing.IsCancellationRequested);
+            Assert.False(ctsDisposed.IsCancellationRequested);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposing);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposedOrDisposing);
             await Task.Delay(1500);
@@ -182,11 +210,15 @@ namespace DisposableHelpersTest
             await Task.Delay(1500);
             Assert.Equal(1, dispose.DisposedCallCount);
             Assert.Equal(1, disposingCallCount);
+            Assert.True(ctsDisposing.IsCancellationRequested);
+            Assert.True(ctsDisposed.IsCancellationRequested);
         }
 
         [Fact]
-        public async void Anonimous()
+        public async Task Anonimous()
         {
+            CancellationTokenSource ctsDisposing = new();
+            CancellationTokenSource ctsDisposed = new();
             int disposeCallCount = 0;
             int disposingCallCount = 0;
             var dispose = new AsyncDisposable(async disposing =>
@@ -201,11 +233,15 @@ namespace DisposableHelpersTest
             {
                 disposingCallCount++;
             };
+            dispose.CancelWhenDisposing(ctsDisposing);
+            dispose.CancelWhenDisposed(ctsDisposed);
             Assert.Equal(0, disposeCallCount);
             Assert.Equal(0, disposingCallCount);
             Assert.False(dispose.IsDisposed);
             Assert.False(dispose.IsDisposing);
             Assert.False(dispose.IsDisposedOrDisposing);
+            Assert.False(ctsDisposing.IsCancellationRequested);
+            Assert.False(ctsDisposed.IsCancellationRequested);
             Task run = Task.Run(async delegate
             {
                 await Task.Delay(1).ConfigureAwait(false);
@@ -219,6 +255,8 @@ namespace DisposableHelpersTest
             Assert.False(dispose.IsDisposed);
             Assert.True(dispose.IsDisposing);
             Assert.True(dispose.IsDisposedOrDisposing);
+            Assert.True(ctsDisposing.IsCancellationRequested);
+            Assert.False(ctsDisposed.IsCancellationRequested);
             await Task.Delay(1500);
             Assert.Equal(1, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
@@ -229,6 +267,8 @@ namespace DisposableHelpersTest
             await Task.Delay(1500);
             Assert.Equal(1, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
+            Assert.True(ctsDisposing.IsCancellationRequested);
+            Assert.True(ctsDisposed.IsCancellationRequested);
         }
     }
 }
