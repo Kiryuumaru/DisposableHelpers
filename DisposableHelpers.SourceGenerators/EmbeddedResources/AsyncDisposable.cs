@@ -46,6 +46,9 @@ public class AsyncDisposable : global::System.IAsyncDisposable
     public event global::System.EventHandler? Disposing;
 #nullable disable
 
+    private readonly global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource> cancelOnDisposeSources = new global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource>();
+    private readonly global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource> cancelOnDisposingSources = new global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource>();
+
     /// <summary>
     /// Finalizes an instance of the <see cref="AsyncDisposable"/> class.
     /// </summary>
@@ -70,10 +73,58 @@ public class AsyncDisposable : global::System.IAsyncDisposable
         OnDisposing();
         Disposing = null;
 
+        foreach (var cts in cancelOnDisposingSources)
+        {
+            cts.Cancel();
+        }
+
         await DisposeAsync(true);
 
         global::System.GC.SuppressFinalize(this);
         global::System.Threading.Interlocked.Exchange(ref disposeStage, DisposalComplete);
+
+        foreach (var cts in cancelOnDisposeSources)
+        {
+            cts.Cancel();
+        }
+    }
+
+    /// <summary>
+    /// Registers a <see cref="CancellationTokenSource"/> to be canceled when the object is fully disposed.
+    /// </summary>
+    /// <param name="cancellationTokenSource">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
+    public void CancelWhenDisposed(global::System.Threading.CancellationTokenSource cancellationTokenSource)
+    {
+        if (cancellationTokenSource == null)
+            throw new global::System.ArgumentNullException(nameof(cancellationTokenSource));
+
+        if (IsDisposed)
+        {
+            cancellationTokenSource.Cancel();
+        }
+        else
+        {
+            cancelOnDisposeSources.Add(cancellationTokenSource);
+        }
+    }
+
+    /// <summary>
+    /// Registers a <see cref="CancellationTokenSource"/> to be canceled when the object starts disposing.
+    /// </summary>
+    /// <param name="cancellationTokenSource">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
+    public void CancelWhenDisposing(global::System.Threading.CancellationTokenSource cancellationTokenSource)
+    {
+        if (cancellationTokenSource == null)
+            throw new global::System.ArgumentNullException(nameof(cancellationTokenSource));
+
+        if (IsDisposedOrDisposing)
+        {
+            cancellationTokenSource.Cancel();
+        }
+        else
+        {
+            cancelOnDisposingSources.Add(cancellationTokenSource);
+        }
     }
 
     /// <summary>
