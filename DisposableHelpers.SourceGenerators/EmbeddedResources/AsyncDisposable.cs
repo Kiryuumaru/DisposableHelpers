@@ -128,6 +128,42 @@ public class AsyncDisposable : global::System.IAsyncDisposable
     }
 
     /// <summary>
+    /// Registers a <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled when the object is fully disposed and returns its <see cref="global::System.Threading.CancellationToken"/>.
+    /// </summary>
+    /// <returns>A <see cref="CancellationToken"/> that will be canceled when the object is disposed.</returns>
+    public global::System.Threading.CancellationToken CancelWhenDisposed()
+    {
+        var cancellationTokenSource = new global::System.Threading.CancellationTokenSource();
+        if (IsDisposed)
+        {
+            cancellationTokenSource.Cancel();
+        }
+        else
+        {
+            cancelOnDisposeSources.Add(cancellationTokenSource);
+        }
+        return cancellationTokenSource.Token;
+    }
+
+    /// <summary>
+    /// Registers a <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled when the object starts disposing and returns its <see cref="global::System.Threading.CancellationToken"/>.
+    /// </summary>
+    /// <returns>A <see cref="CancellationToken"/> that will be canceled when the object starts disposing.</returns>
+    public global::System.Threading.CancellationToken CancelWhenDisposing()
+    {
+        var cancellationTokenSource = new global::System.Threading.CancellationTokenSource();
+        if (IsDisposedOrDisposing)
+        {
+            cancellationTokenSource.Cancel();
+        }
+        else
+        {
+            cancelOnDisposingSources.Add(cancellationTokenSource);
+        }
+        return cancellationTokenSource.Token;
+    }
+
+    /// <summary>
     /// Verifies that this object is not in the process of disposing, throwing an exception if it is.
     /// </summary>
     protected void VerifyNotDisposing()
