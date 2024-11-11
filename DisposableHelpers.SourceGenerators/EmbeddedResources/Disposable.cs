@@ -46,8 +46,8 @@ public class Disposable : global::System.IDisposable
     public event global::System.EventHandler? Disposing;
 #nullable disable
 
-    private readonly global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource> cancelOnDisposeSources = new global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource>();
-    private readonly global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource> cancelOnDisposingSources = new global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource>();
+    private readonly global::System.Threading.CancellationTokenSource cancelOnDisposingCts = new global::System.Threading.CancellationTokenSource();
+    private readonly global::System.Threading.CancellationTokenSource cancelOnDisposeCts = new global::System.Threading.CancellationTokenSource();
 
     /// <summary>
     /// Finalizes an instance of the <see cref="Disposable"/> class.
@@ -70,20 +70,14 @@ public class Disposable : global::System.IDisposable
         OnDisposing();
         Disposing = null;
 
-        foreach (var cts in cancelOnDisposingSources)
-        {
-            cts.Cancel();
-        }
+        cancelOnDisposingCts.Cancel();
 
         Dispose(true);
 
         global::System.GC.SuppressFinalize(this);
         global::System.Threading.Interlocked.Exchange(ref disposeStage, DisposalComplete);
 
-        foreach (var cts in cancelOnDisposeSources)
-        {
-            cts.Cancel();
-        }
+        cancelOnDisposeCts.Cancel();
     }
 
     /// <summary>
@@ -92,16 +86,14 @@ public class Disposable : global::System.IDisposable
     /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposed.</returns>
     public global::System.Threading.CancellationToken CancelWhenDisposed()
     {
-        var cancellationTokenSource = new global::System.Threading.CancellationTokenSource();
-
-        cancelOnDisposeSources.Add(cancellationTokenSource);
+        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelOnDisposeCts.Token);
 
         if (IsDisposed)
         {
-            cancellationTokenSource.Cancel();
+            cts.Cancel();
         }
 
-        return cancellationTokenSource.Token;
+        return cts.Token;
     }
 
     /// <summary>
@@ -110,16 +102,14 @@ public class Disposable : global::System.IDisposable
     /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object starts disposing.</returns>
     public global::System.Threading.CancellationToken CancelWhenDisposing()
     {
-        var cancellationTokenSource = new global::System.Threading.CancellationTokenSource();
-
-        cancelOnDisposingSources.Add(cancellationTokenSource);
+        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelOnDisposingCts.Token);
 
         if (IsDisposedOrDisposing)
         {
-            cancellationTokenSource.Cancel();
+            cts.Cancel();
         }
 
-        return cancellationTokenSource.Token;
+        return cts.Token;
     }
 
     /// <summary>
@@ -129,16 +119,14 @@ public class Disposable : global::System.IDisposable
     /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposed.</returns>
     public global::System.Threading.CancellationToken CancelWhenDisposed(global::System.Threading.CancellationToken cancellationToken)
     {
-        var linkedCts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-        cancelOnDisposeSources.Add(linkedCts);
+        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelOnDisposeCts.Token, cancellationToken);
 
         if (IsDisposed)
         {
-            linkedCts.Cancel();
+            cts.Cancel();
         }
 
-        return linkedCts.Token;
+        return cts.Token;
     }
 
     /// <summary>
@@ -148,16 +136,14 @@ public class Disposable : global::System.IDisposable
     /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposing.</returns>
     public global::System.Threading.CancellationToken CancelWhenDisposing(global::System.Threading.CancellationToken cancellationToken)
     {
-        var linkedCts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-        cancelOnDisposingSources.Add(linkedCts);
+        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelOnDisposingCts.Token, cancellationToken);
 
         if (IsDisposedOrDisposing)
         {
-            linkedCts.Cancel();
+            cts.Cancel();
         }
 
-        return linkedCts.Token;
+        return cts.Token;
     }
 
     /// <summary>
