@@ -10,4 +10,8 @@ public sealed record DisposableInfo(
     string TypeName,
     bool HasExplicitDestructors,
     bool HasImplementedIDisposable,
-    IMethodSymbol? DisposeMethod);
+    bool HasImplementedIAsyncDisposable,
+    (IMethodSymbol symbol, bool fromDerived)? DisposeMethod,
+    (IMethodSymbol symbol, bool fromDerived)? DisposeAsyncMethod,
+    (IMethodSymbol symbol, bool fromDerived)? DisposeBoolMethod,
+    (IMethodSymbol symbol, bool fromDerived)? DisposeAsyncBoolMethod);
