@@ -32,10 +32,26 @@ namespace DisposableHelpers.SourceGenerators
             {
                 string typeName = typeSymbol.Name;
                 bool hasExplicitDestructors = typeSymbol.GetMembers().Any(m => m is IMethodSymbol symbol && symbol.MethodKind == MethodKind.Destructor);
+
                 bool hasImplementedIDisposable = typeSymbol.AllInterfaces.Any(i => i.HasFullyQualifiedName("global::System.IDisposable"));
                 var disposeMethod = typeSymbol.GetMembers().FirstOrDefault(i =>
                     i is IMethodSymbol symbol &&
                     symbol.Name == "Dispose" &&
+                    symbol.Parameters.Length == 0);
+                var disposeBoolMethod = typeSymbol.GetMembers().FirstOrDefault(i =>
+                    i is IMethodSymbol symbol &&
+                    symbol.Name == "Dispose" &&
+                    symbol.Parameters.Length == 1 &&
+                    symbol.Parameters[0].Type.Name == typeof(bool).Name);
+
+                bool hasImplementedIAsyncDisposable = typeSymbol.AllInterfaces.Any(i => i.HasFullyQualifiedName("global::System.IAsyncDisposable"));
+                var disposeAsyncMethod = typeSymbol.GetMembers().FirstOrDefault(i =>
+                    i is IMethodSymbol symbol &&
+                    symbol.Name == "DisposeAsync" &&
+                    symbol.Parameters.Length == 0);
+                var disposeAsyncBoolMethod = typeSymbol.GetMembers().FirstOrDefault(i =>
+                    i is IMethodSymbol symbol &&
+                    symbol.Name == "DisposeAsync" &&
                     symbol.Parameters.Length == 1 &&
                     symbol.Parameters[0].Type.Name == typeof(bool).Name);
 
@@ -43,7 +59,11 @@ namespace DisposableHelpers.SourceGenerators
                     typeName,
                     hasExplicitDestructors,
                     hasImplementedIDisposable,
-                    disposeMethod as IMethodSymbol);
+                    hasImplementedIAsyncDisposable,
+                    disposeMethod as IMethodSymbol,
+                    disposeAsyncMethod as IMethodSymbol,
+                    disposeBoolMethod as IMethodSymbol,
+                    disposeAsyncBoolMethod as IMethodSymbol);
             }
 
             return
@@ -82,6 +102,8 @@ namespace DisposableHelpers.SourceGenerators
                     string text = ctor.NormalizeWhitespace().ToFullString();
                     string replaced = text.Replace("~Disposable", $"~{info.TypeName}");
 
+                    Console.WriteLine(text);
+
                     builder.Add((DestructorDeclarationSyntax)ParseMemberDeclaration(replaced)!);
                 }
             }
@@ -89,11 +111,39 @@ namespace DisposableHelpers.SourceGenerators
             MemberDeclarationSyntax? FixupFilteredMemberDeclaration(MemberDeclarationSyntax member)
             {
                 // Remove Dispose(bool) if the target type already has the method
+                if (info.DisposeBoolMethod != null &&
+                    member is MethodDeclarationSyntax disposeBoolSyntax &&
+                    disposeBoolSyntax.Identifier.ValueText == "Dispose" &&
+                    disposeBoolSyntax.ParameterList.Parameters.Count == 1 &&
+                    disposeBoolSyntax.ParameterList.Parameters[0].Type?.ToString() == "bool")
+                {
+                    return null;
+                }
+
+                // Remove DisposeAsync(bool) if the target type already has the method
+                if (info.DisposeAsyncBoolMethod != null &&
+                    member is MethodDeclarationSyntax disposeAsyncBoolSyntax &&
+                    disposeAsyncBoolSyntax.Identifier.ValueText == "DisposeAsync" &&
+                    disposeAsyncBoolSyntax.ParameterList.Parameters.Count == 1 &&
+                    disposeAsyncBoolSyntax.ParameterList.Parameters[0].Type?.ToString() == "bool")
+                {
+                    return null;
+                }
+
+                // Remove Dispose() if the target type already has the method
                 if (info.DisposeMethod != null &&
-                    member is MethodDeclarationSyntax syntax &&
-                    syntax.Identifier.ValueText == "Dispose" &&
-                    syntax.ParameterList.Parameters.Count == 1 &&
-                    syntax.ParameterList.Parameters[0].Type?.ToString() == "bool")
+                    member is MethodDeclarationSyntax disposeSyntax &&
+                    disposeSyntax.Identifier.ValueText == "Dispose" &&
+                    disposeSyntax.ParameterList.Parameters.Count == 0)
+                {
+                    return null;
+                }
+
+                // Remove DisposeAsync() if the target type already has the method
+                if (info.DisposeAsyncMethod != null &&
+                    member is MethodDeclarationSyntax disposeAsyncSyntax &&
+                    disposeAsyncSyntax.Identifier.ValueText == "DisposeAsync" &&
+                    disposeAsyncSyntax.ParameterList.Parameters.Count == 0)
                 {
                     return null;
                 }

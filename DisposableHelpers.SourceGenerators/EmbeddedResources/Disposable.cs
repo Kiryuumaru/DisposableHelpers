@@ -1,7 +1,7 @@
 ﻿/// <summary>
-/// Contains all methods for performing proper <see cref="global::System.IDisposable"/> operations.
+/// Contains all methods for performing proper <see cref="global::System.IDisposable"/> and <see cref="global::System.IAsyncDisposable"/> operations.
 /// </summary>
-public class Disposable : global::System.IDisposable
+public class Disposable : global::System.IDisposable, global::System.IAsyncDisposable
 {
     /// <summary>
     /// Gets a value indicating whether this object is in the process of disposing.
@@ -47,7 +47,7 @@ public class Disposable : global::System.IDisposable
 #nullable disable
 
     private readonly global::System.Threading.CancellationTokenSource cancelOnDisposingCts = new global::System.Threading.CancellationTokenSource();
-    private readonly global::System.Threading.CancellationTokenSource cancelOnDisposeCts = new global::System.Threading.CancellationTokenSource();
+    private readonly global::System.Threading.CancellationTokenSource cancelOnDisposedCts = new global::System.Threading.CancellationTokenSource();
 
     /// <summary>
     /// Finalizes an instance of the <see cref="Disposable"/> class.
@@ -57,10 +57,7 @@ public class Disposable : global::System.IDisposable
         Dispose(false);
     }
 
-    /// <summary>
-    /// Disposes of this object, if it hasn't already been disposed.
-    /// </summary>
-    public void Dispose()
+    private void CoreDispose()
     {
         if (global::System.Threading.Interlocked.CompareExchange(ref disposeStage, DisposalStarted, DisposalNotStarted) != DisposalNotStarted)
         {
@@ -73,20 +70,66 @@ public class Disposable : global::System.IDisposable
         cancelOnDisposingCts.Cancel();
 
         Dispose(true);
+        DisposeAsync(true).AsTask().Wait();
 
         global::System.GC.SuppressFinalize(this);
         global::System.Threading.Interlocked.Exchange(ref disposeStage, DisposalComplete);
 
-        cancelOnDisposeCts.Cancel();
+        cancelOnDisposedCts.Cancel();
+    }
+
+    private async global::System.Threading.Tasks.ValueTask CoreDisposeAsync()
+    {
+        if (global::System.Threading.Interlocked.CompareExchange(ref disposeStage, DisposalStarted, DisposalNotStarted) != DisposalNotStarted)
+        {
+            return;
+        }
+
+        OnDisposing();
+        Disposing = null;
+
+        cancelOnDisposingCts.Cancel();
+
+        Dispose(true);
+        await DisposeAsync(true);
+
+        global::System.GC.SuppressFinalize(this);
+        global::System.Threading.Interlocked.Exchange(ref disposeStage, DisposalComplete);
+
+        cancelOnDisposedCts.Cancel();
     }
 
     /// <summary>
-    /// Returns a <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is fully disposed.
+    /// Disposes of this object, if it hasn't already been disposed.
     /// </summary>
-    /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposed.</returns>
-    public global::System.Threading.CancellationToken CancelWhenDisposed()
+    public void Dispose()
     {
-        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelOnDisposeCts.Token);
+        CoreDispose();
+    }
+
+    /// <summary>
+    /// Disposes of this object, if it hasn't already been disposed.
+    /// </summary>
+    /// <returns>
+    /// The <see cref="global::System.Threading.Tasks.ValueTask"/> of the dispose operation.
+    /// </returns>
+    public global::System.Threading.Tasks.ValueTask DisposeAsync()
+    {
+        return CoreDisposeAsync();
+    }
+
+    /// <summary>
+    /// Returns a <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is fully disposed, or when any of the provided <paramref name="cancellationTokens"/> is canceled.
+    /// </summary>
+    /// <param name="cancellationTokens">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
+    /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposed.</returns>
+    public global::System.Threading.CancellationToken CancelWhenDisposed(params global::System.Threading.CancellationToken[] cancellationTokens)
+    {
+        global::System.Collections.Generic.List<global::System.Threading.CancellationToken> ct = new global::System.Collections.Generic.List<global::System.Threading.CancellationToken>();
+        ct.Add(cancelOnDisposedCts.Token);
+        ct.AddRange(cancellationTokens);
+
+        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(ct.ToArray());
 
         if (IsDisposed)
         {
@@ -97,46 +140,17 @@ public class Disposable : global::System.IDisposable
     }
 
     /// <summary>
-    /// Returns a <see cref="global::System.Threading.CancellationToken"/> to be canceled when the object starts disposing.
+    /// Returns a <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object starts disposing, or when any of the provided <paramref name="cancellationTokens"/> is canceled.
     /// </summary>
-    /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object starts disposing.</returns>
-    public global::System.Threading.CancellationToken CancelWhenDisposing()
-    {
-        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelOnDisposingCts.Token);
-
-        if (IsDisposedOrDisposing)
-        {
-            cts.Cancel();
-        }
-
-        return cts.Token;
-    }
-
-    /// <summary>
-    /// Returns a <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is fully disposed, or when the provided <paramref name="cancellationToken"/> is canceled.
-    /// </summary>
-    /// <param name="cancellationToken">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
-    /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposed.</returns>
-    public global::System.Threading.CancellationToken CancelWhenDisposed(global::System.Threading.CancellationToken cancellationToken)
-    {
-        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelOnDisposeCts.Token, cancellationToken);
-
-        if (IsDisposed)
-        {
-            cts.Cancel();
-        }
-
-        return cts.Token;
-    }
-
-    /// <summary>
-    /// Returns a <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object starts disposing, or when the provided <paramref name="cancellationToken"/> is canceled.
-    /// </summary>
-    /// <param name="cancellationToken">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
+    /// <param name="cancellationTokens">The <see cref="global::System.Threading.CancellationTokenSource"/> to be canceled.</param>
     /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposing.</returns>
-    public global::System.Threading.CancellationToken CancelWhenDisposing(global::System.Threading.CancellationToken cancellationToken)
+    public global::System.Threading.CancellationToken CancelWhenDisposing(params global::System.Threading.CancellationToken[] cancellationTokens)
     {
-        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelOnDisposingCts.Token, cancellationToken);
+        global::System.Collections.Generic.List<global::System.Threading.CancellationToken> ct = new global::System.Collections.Generic.List<global::System.Threading.CancellationToken>();
+        ct.Add(cancelOnDisposingCts.Token);
+        ct.AddRange(cancellationTokens);
+
+        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(ct.ToArray());
 
         if (IsDisposedOrDisposing)
         {
@@ -195,5 +209,19 @@ public class Disposable : global::System.IDisposable
     /// </param>
     protected virtual void Dispose(bool disposing)
     {
+    }
+
+    /// <summary>
+    /// Allows subclasses to provide dispose logic.
+    /// </summary>
+    /// <param name="disposing">
+    /// Whether the method is being called in response to disposal, or finalization.
+    /// </param>
+    /// <returns>
+    /// The <see cref="global::System.Threading.Tasks.ValueTask"/> of the dispose operation.
+    /// </returns>
+    protected virtual System.Threading.Tasks.ValueTask DisposeAsync(bool disposing)
+    {
+        return default;
     }
 }

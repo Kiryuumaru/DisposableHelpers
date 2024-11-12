@@ -1,5 +1,6 @@
 ﻿using DisposableHelpers.Attributes;
 using System;
+using System.Threading.Tasks;
 
 namespace DisposableHelpers;
 
@@ -9,7 +10,8 @@ namespace DisposableHelpers;
 [Disposable]
 public partial class Disposable
 {
-    private readonly Action<bool>? dispose;
+    private readonly Action<bool>? _dispose;
+    private readonly Func<bool, ValueTask>? _disposeAsync;
 
     /// <summary>
     /// Creates an instance of <see cref="Disposable"/> class.
@@ -24,7 +26,15 @@ public partial class Disposable
     /// </summary>
     public Disposable(Action<bool> dispose)
     {
-        this.dispose = dispose;
+        _dispose = dispose;
+    }
+
+    /// <summary>
+    /// Creates an instance of <see cref="Disposable"/> class with async function on dispose.
+    /// </summary>
+    public Disposable(Func<bool, ValueTask> disposeAsync)
+    {
+        _disposeAsync = disposeAsync;
     }
 
     /// <summary>
@@ -35,6 +45,23 @@ public partial class Disposable
     /// </param>
     protected virtual void Dispose(bool disposing)
     {
-        dispose?.Invoke(disposing);
+        _dispose?.Invoke(disposing);
+    }
+
+    /// <summary>
+    /// Allows subclasses to provide dispose logic.
+    /// </summary>
+    /// <param name="disposing">
+    /// Whether the method is being called in response to disposal, or finalization.
+    /// </param>
+    /// <returns>
+    /// The <see cref="ValueTask"/> of the dispose operation.
+    /// </returns>
+    protected virtual async ValueTask DisposeAsync(bool disposing)
+    {
+        if (_disposeAsync != null)
+        {
+            await _disposeAsync.Invoke(disposing);
+        }
     }
 }

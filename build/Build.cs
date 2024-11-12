@@ -30,6 +30,28 @@ class Build : BaseNukeBuildHelpers
     [SecretVariable("GITHUB_TOKEN")]
     readonly string? GithubToken;
 
+    public Target Clean => _ => _
+        .Unlisted()
+        .Description("Clean all build files")
+        .Executes(delegate
+        {
+            foreach (var projectFile in RootDirectory.GetFiles("**.csproj", 10))
+            {
+                if (projectFile.Name.Equals("_build.csproj"))
+                {
+                    continue;
+                }
+                var projectDir = projectFile.Parent;
+                Console.WriteLine("Cleaning " + projectDir.ToString());
+                (projectDir / "bin").DeleteDirectory();
+                (projectDir / "obj").DeleteDirectory();
+            }
+            Console.WriteLine("Cleaning " + (RootDirectory / ".vs").ToString());
+            (RootDirectory / ".vs").DeleteDirectory();
+            Console.WriteLine("Cleaning " + (RootDirectory / "out").ToString());
+            (RootDirectory / "out").DeleteDirectory();
+        });
+
     TestEntry DisposableHelpersTest => _ => _
         .AppId("disposable_helpers")
         .RunnerOS(RunnerOS.Ubuntu2204)

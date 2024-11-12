@@ -35,14 +35,4 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         description: "Cannot apply [Disposable] to a type that already has this attribute or [Disposable] applied to it (including base types).",
         helpLinkUri: "https://github.com/Kiryuumaru/DisposableHelpers");
-
-    public static readonly DiagnosticDescriptor InvalidAttributeCombinationForAsyncDisposableAttributeError = new DiagnosticDescriptor(
-        id: "DH0003",
-        title: "Invalid target type for [AsyncDisposable]",
-        messageFormat: "Cannot apply [AsyncDisposable] to type {0}, as it already has this attribute or [AsyncDisposable] applied to it (including base types)",
-        category: typeof(AsyncDisposableGenerator).FullName,
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true,
-        description: "Cannot apply [AsyncDisposable] to a type that already has this attribute or [AsyncDisposable] applied to it (including base types).",
-        helpLinkUri: "https://github.com/Kiryuumaru/DisposableHelpers");
 }

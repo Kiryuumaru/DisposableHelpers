@@ -26,9 +26,9 @@ namespace DisposableHelpers.SourceGenerators
 
         private readonly IEqualityComparer<TInfo> comparer;
 
-        private ImmutableArray<MemberDeclarationSyntax> sealedMemberDeclarations;
+        private readonly ImmutableArray<MemberDeclarationSyntax> sealedMemberDeclarations;
 
-        private ImmutableArray<MemberDeclarationSyntax> nonSealedMemberDeclarations;
+        private readonly ImmutableArray<MemberDeclarationSyntax> nonSealedMemberDeclarations;
 
         public TransitiveMembersGenerator(string attributeType, IEqualityComparer<TInfo>? comparer = null)
         {
