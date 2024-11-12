@@ -11,7 +11,7 @@ public sealed record DisposableInfo(
     bool HasExplicitDestructors,
     bool HasImplementedIDisposable,
     bool HasImplementedIAsyncDisposable,
-    IMethodSymbol? DisposeMethod,
-    IMethodSymbol? DisposeAsyncMethod,
-    IMethodSymbol? DisposeBoolMethod,
-    IMethodSymbol? DisposeAsyncBoolMethod);
+    (IMethodSymbol symbol, bool fromDerived)? DisposeMethod,
+    (IMethodSymbol symbol, bool fromDerived)? DisposeAsyncMethod,
+    (IMethodSymbol symbol, bool fromDerived)? DisposeBoolMethod,
+    (IMethodSymbol symbol, bool fromDerived)? DisposeAsyncBoolMethod);

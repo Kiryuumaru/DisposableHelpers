@@ -35,4 +35,44 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         description: "Cannot apply [Disposable] to a type that already has this attribute or [Disposable] applied to it (including base types).",
         helpLinkUri: "https://github.com/Kiryuumaru/DisposableHelpers");
+
+    public static readonly DiagnosticDescriptor TargetHasDirectDisposeImplementationError = new DiagnosticDescriptor(
+        id: "DH0003",
+        title: "Target type for [Disposable] has direct \"Dispose()\" and \"Dispose(bool)\" implementations",
+        messageFormat: "Cannot apply [Disposable] to type {0}, as it already has a \"Dispose()\" and \"Dispose(bool)\" direct method implementations",
+        category: typeof(DisposableGenerator).FullName,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Cannot apply [Disposable] to type, as it already has a \"Dispose()\" and \"Dispose(bool)\" direct method implementations.",
+        helpLinkUri: "https://github.com/Kiryuumaru/DisposableHelpers");
+
+    public static readonly DiagnosticDescriptor TargetHasDirectDisposeAsyncImplementationError = new DiagnosticDescriptor(
+        id: "DH0004",
+        title: "Target type for [Disposable] has direct \"DisposeAsync()\" and \"DisposeAsync(bool)\" implementations",
+        messageFormat: "Cannot apply [Disposable] to type {0}, as it already has a \"DisposeAsync()\" and \"DisposeAsync(bool)\" direct method implementations",
+        category: typeof(DisposableGenerator).FullName,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Cannot apply [Disposable] to type, as it already has a \"DisposeAsync()\" and \"DisposeAsync(bool)\" direct method implementations.",
+        helpLinkUri: "https://github.com/Kiryuumaru/DisposableHelpers");
+
+    public static readonly DiagnosticDescriptor TargetBaseNoOverridableDisposeMethodError = new DiagnosticDescriptor(
+        id: "DH0005",
+        title: "Target type for [Disposable] base class has no overridable \"Dispose()\" or \"Dispose(bool)\" implementations",
+        messageFormat: "Cannot apply [Disposable] to type {0}, as it has no overridable \"Dispose()\" or \"Dispose(bool)\" implementations",
+        category: typeof(DisposableGenerator).FullName,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Cannot apply [Disposable] to type, as it has no overridable \"Dispose()\" or \"Dispose(bool)\" implementations.",
+        helpLinkUri: "https://github.com/Kiryuumaru/DisposableHelpers");
+
+    public static readonly DiagnosticDescriptor TargetBaseNoOverridableDisposeAsyncMethodError = new DiagnosticDescriptor(
+        id: "DH0006",
+        title: "Target type for [Disposable] base class has no overridable \"DisposeAsync()\" or \"DisposeAsync(bool)\" implementations",
+        messageFormat: "Cannot apply [Disposable] to type {0}, as it has no overridable \"DisposeAsync()\" or \"DisposeAsync(bool)\" implementations",
+        category: typeof(DisposableGenerator).FullName,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Cannot apply [Disposable] to type, as it has no overridable \"DisposeAsync()\" or \"DisposeAsync(bool)\" implementations.",
+        helpLinkUri: "https://github.com/Kiryuumaru/DisposableHelpers");
 }

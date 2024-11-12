@@ -64,18 +64,16 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
             return;
         }
 
+        cancelOnDisposingCts.Cancel();
         OnDisposing();
         Disposing = null;
 
-        cancelOnDisposingCts.Cancel();
-
         Dispose(true);
         DisposeAsync(true).AsTask().Wait();
+        cancelOnDisposedCts.Cancel();
 
         global::System.GC.SuppressFinalize(this);
         global::System.Threading.Interlocked.Exchange(ref disposeStage, DisposalComplete);
-
-        cancelOnDisposedCts.Cancel();
     }
 
     private async global::System.Threading.Tasks.ValueTask CoreDisposeAsync()
@@ -85,26 +83,33 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
             return;
         }
 
+        cancelOnDisposingCts.Cancel();
         OnDisposing();
         Disposing = null;
 
-        cancelOnDisposingCts.Cancel();
-
         Dispose(true);
         await DisposeAsync(true);
+        cancelOnDisposedCts.Cancel();
 
         global::System.GC.SuppressFinalize(this);
         global::System.Threading.Interlocked.Exchange(ref disposeStage, DisposalComplete);
-
-        cancelOnDisposedCts.Cancel();
     }
 
     /// <summary>
     /// Disposes of this object, if it hasn't already been disposed.
     /// </summary>
-    public void Dispose()
+    public void Dispose_Normal()
     {
         CoreDispose();
+    }
+
+    /// <summary>
+    /// Disposes of this object, if it hasn't already been disposed.
+    /// </summary>
+    public override void Dispose_Override()
+    {
+        CoreDispose();
+        base.Dispose();
     }
 
     /// <summary>
@@ -113,9 +118,21 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
     /// <returns>
     /// The <see cref="global::System.Threading.Tasks.ValueTask"/> of the dispose operation.
     /// </returns>
-    public global::System.Threading.Tasks.ValueTask DisposeAsync()
+    public global::System.Threading.Tasks.ValueTask DisposeAsync_Normal()
     {
         return CoreDisposeAsync();
+    }
+
+    /// <summary>
+    /// Disposes of this object, if it hasn't already been disposed.
+    /// </summary>
+    /// <returns>
+    /// The <see cref="global::System.Threading.Tasks.ValueTask"/> of the dispose operation.
+    /// </returns>
+    public override async global::System.Threading.Tasks.ValueTask DisposeAsync_Override()
+    {
+        await CoreDisposeAsync();
+        await base.DisposeAsync();
     }
 
     /// <summary>
@@ -207,8 +224,31 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
     /// <param name="disposing">
     /// Whether the method is being called in response to disposal, or finalization.
     /// </param>
-    protected virtual void Dispose(bool disposing)
+    protected virtual void Dispose_Normal(bool disposing)
     {
+    }
+
+    /// <summary>
+    /// Allows subclasses to provide dispose logic.
+    /// </summary>
+    /// <param name="disposing">
+    /// Whether the method is being called in response to disposal, or finalization.
+    /// </param>
+    protected override void Dispose_Override(bool disposing)
+    {
+        base.Dispose(disposing && IsDisposing);
+    }
+
+    /// <summary>
+    /// Allows subclasses to provide dispose logic.
+    /// </summary>
+    /// <param name="disposing">
+    /// Whether the method is being called in response to disposal, or finalization.
+    /// </param>
+    protected override void Dispose_OverrideCross(bool disposing)
+    {
+        CoreDispose();
+        base.Dispose(disposing && IsDisposing);
     }
 
     /// <summary>
@@ -220,8 +260,37 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
     /// <returns>
     /// The <see cref="global::System.Threading.Tasks.ValueTask"/> of the dispose operation.
     /// </returns>
-    protected virtual System.Threading.Tasks.ValueTask DisposeAsync(bool disposing)
+    protected virtual System.Threading.Tasks.ValueTask DisposeAsync_Normal(bool disposing)
     {
         return default;
+    }
+
+    /// <summary>
+    /// Allows subclasses to provide dispose logic.
+    /// </summary>
+    /// <param name="disposing">
+    /// Whether the method is being called in response to disposal, or finalization.
+    /// </param>
+    /// <returns>
+    /// The <see cref="global::System.Threading.Tasks.ValueTask"/> of the dispose operation.
+    /// </returns>
+    protected override System.Threading.Tasks.ValueTask DisposeAsync_Override(bool disposing)
+    {
+        return base.DisposeAsync(disposing && IsDisposing);
+    }
+
+    /// <summary>
+    /// Allows subclasses to provide dispose logic.
+    /// </summary>
+    /// <param name="disposing">
+    /// Whether the method is being called in response to disposal, or finalization.
+    /// </param>
+    /// <returns>
+    /// The <see cref="global::System.Threading.Tasks.ValueTask"/> of the dispose operation.
+    /// </returns>
+    protected override async System.Threading.Tasks.ValueTask DisposeAsync_OverrideCross(bool disposing)
+    {
+        await CoreDisposeAsync();
+        await base.DisposeAsync(disposing && IsDisposing);
     }
 }

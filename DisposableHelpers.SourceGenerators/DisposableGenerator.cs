@@ -1,6 +1,7 @@
 ﻿using DisposableHelpers.SourceGenerators.ComponentModel.Models;
 using DisposableHelpers.SourceGenerators.Diagnostics;
 using DisposableHelpers.SourceGenerators.Extensions;
+using DisposableHelpers.SourceGenerators.Helpers;
 using DisposableHelpers.SourceGenerators.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using static DisposableHelpers.SourceGenerators.Diagnostics.DiagnosticDescriptors;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
@@ -34,36 +36,66 @@ namespace DisposableHelpers.SourceGenerators
                 bool hasExplicitDestructors = typeSymbol.GetMembers().Any(m => m is IMethodSymbol symbol && symbol.MethodKind == MethodKind.Destructor);
 
                 bool hasImplementedIDisposable = typeSymbol.AllInterfaces.Any(i => i.HasFullyQualifiedName("global::System.IDisposable"));
-                var disposeMethod = typeSymbol.GetMembers().FirstOrDefault(i =>
-                    i is IMethodSymbol symbol &&
-                    symbol.Name == "Dispose" &&
-                    symbol.Parameters.Length == 0);
-                var disposeBoolMethod = typeSymbol.GetMembers().FirstOrDefault(i =>
-                    i is IMethodSymbol symbol &&
-                    symbol.Name == "Dispose" &&
-                    symbol.Parameters.Length == 1 &&
-                    symbol.Parameters[0].Type.Name == typeof(bool).Name);
-
                 bool hasImplementedIAsyncDisposable = typeSymbol.AllInterfaces.Any(i => i.HasFullyQualifiedName("global::System.IAsyncDisposable"));
-                var disposeAsyncMethod = typeSymbol.GetMembers().FirstOrDefault(i =>
-                    i is IMethodSymbol symbol &&
-                    symbol.Name == "DisposeAsync" &&
-                    symbol.Parameters.Length == 0);
-                var disposeAsyncBoolMethod = typeSymbol.GetMembers().FirstOrDefault(i =>
-                    i is IMethodSymbol symbol &&
-                    symbol.Name == "DisposeAsync" &&
-                    symbol.Parameters.Length == 1 &&
-                    symbol.Parameters[0].Type.Name == typeof(bool).Name);
+
+                (IMethodSymbol symbol, bool fromDerived)? disposeMethod = null;
+                (IMethodSymbol symbol, bool fromDerived)? disposeBoolMethod = null;
+                (IMethodSymbol symbol, bool fromDerived)? disposeAsyncMethod = null;
+                (IMethodSymbol symbol, bool fromDerived)? disposeAsyncBoolMethod = null;
+
+                bool fromDerived = false;
+                var currentTypeSymbol = typeSymbol;
+                while (currentTypeSymbol != null)
+                {
+                    if (disposeMethod == null &&
+                        currentTypeSymbol.GetMembers().FirstOrDefault(i =>
+                            i is IMethodSymbol symbol &&
+                            symbol.Name == "Dispose" &&
+                            symbol.Parameters.Length == 0) is IMethodSymbol dm)
+                    {
+                        disposeMethod = (dm, fromDerived);
+                    }
+                    if (disposeBoolMethod == null &&
+                        currentTypeSymbol.GetMembers().FirstOrDefault(i =>
+                            i is IMethodSymbol symbol &&
+                            symbol.Name == "Dispose" &&
+                            symbol.Parameters.Length == 1 &&
+                            symbol.Parameters[0].Type.Name == typeof(bool).Name) is IMethodSymbol dbm)
+                    {
+                        disposeBoolMethod = (dbm, fromDerived);
+                    }
+                    if (disposeAsyncMethod == null &&
+                        currentTypeSymbol.GetMembers().FirstOrDefault(i =>
+                            i is IMethodSymbol symbol &&
+                            symbol.Name == "DisposeAsync" &&
+                            symbol.Parameters.Length == 0) is IMethodSymbol dam)
+                    {
+                        disposeAsyncMethod = (dam, fromDerived);
+                    }
+                    if (disposeAsyncBoolMethod == null &&
+                        currentTypeSymbol.GetMembers().FirstOrDefault(i =>
+                            i is IMethodSymbol symbol &&
+                            symbol.Name == "DisposeAsync" &&
+                            symbol.Parameters.Length == 1 &&
+                            symbol.Parameters[0].Type.Name == typeof(bool).Name) is IMethodSymbol dabm)
+                    {
+                        disposeAsyncBoolMethod = (dabm, fromDerived);
+                    }
+
+                    currentTypeSymbol = currentTypeSymbol.BaseType;
+
+                    fromDerived = true;
+                }
 
                 return new(
                     typeName,
                     hasExplicitDestructors,
                     hasImplementedIDisposable,
                     hasImplementedIAsyncDisposable,
-                    disposeMethod as IMethodSymbol,
-                    disposeAsyncMethod as IMethodSymbol,
-                    disposeBoolMethod as IMethodSymbol,
-                    disposeAsyncBoolMethod as IMethodSymbol);
+                    disposeMethod,
+                    disposeAsyncMethod,
+                    disposeBoolMethod,
+                    disposeAsyncBoolMethod);
             }
 
             return
@@ -79,15 +111,51 @@ namespace DisposableHelpers.SourceGenerators
             if (typeSymbol.InheritsAttributeWithFullyQualifiedName("global::DisposableHelpers.Attributes.DisposableAttribute"))
             {
                 builder.Add(InvalidAttributeCombinationForDisposableAttributeError, typeSymbol, typeSymbol);
+            }
 
-                diagnostics = builder.ToImmutable();
+            // Check if the type uses implemented void Dispose() and Dispose(bool) directly
+            if (info.DisposeMethod != null &&
+                !info.DisposeMethod.Value.fromDerived &&
+                info.DisposeBoolMethod != null &&
+                !info.DisposeBoolMethod.Value.fromDerived)
+            {
+                builder.Add(TargetHasDirectDisposeImplementationError, typeSymbol, typeSymbol);
+            }
 
-                return false;
+            // Check if the type uses implemented void DisposeAsync() and DisposeAsync(bool) directly
+            if (info.DisposeAsyncMethod != null &&
+                !info.DisposeAsyncMethod.Value.fromDerived &&
+                info.DisposeAsyncBoolMethod != null &&
+                !info.DisposeAsyncBoolMethod.Value.fromDerived)
+            {
+                builder.Add(TargetHasDirectDisposeAsyncImplementationError, typeSymbol, typeSymbol);
+            }
+
+            // Is base already disposable
+            if (info.DisposeMethod != null && info.DisposeMethod.Value.fromDerived)
+            {
+                // Check if the type uses implemented void Dispose() or void Dispose(bool) but neither overridable
+                if (!info.DisposeMethod.Value.symbol.IsVirtual && !info.DisposeMethod.Value.symbol.IsOverride &&
+                    (info.DisposeBoolMethod == null || (!info.DisposeBoolMethod.Value.symbol.IsVirtual && !info.DisposeBoolMethod.Value.symbol.IsOverride)))
+                {
+                    builder.Add(TargetBaseNoOverridableDisposeMethodError, typeSymbol, typeSymbol);
+                }
+            }
+
+            // Is base already disposable async
+            if (info.DisposeAsyncMethod != null && info.DisposeAsyncMethod.Value.fromDerived)
+            {
+                // Check if the type uses implemented ValueTask DisposeAsync() or ValueTask DisposeAsync(bool) but neither overridable
+                if (!info.DisposeAsyncMethod.Value.symbol.IsVirtual && !info.DisposeAsyncMethod.Value.symbol.IsOverride &&
+                    (info.DisposeAsyncBoolMethod == null || (!info.DisposeAsyncBoolMethod.Value.symbol.IsVirtual && !info.DisposeAsyncBoolMethod.Value.symbol.IsOverride)))
+                {
+                    builder.Add(TargetBaseNoOverridableDisposeAsyncMethodError, typeSymbol, typeSymbol);
+                }
             }
 
             diagnostics = builder.ToImmutable();
 
-            return true;
+            return diagnostics.Length == 0;
         }
 
         protected override ImmutableArray<MemberDeclarationSyntax> FilterDeclaredMembers(DisposableInfo info, ImmutableArray<MemberDeclarationSyntax> memberDeclarations)
@@ -102,50 +170,200 @@ namespace DisposableHelpers.SourceGenerators
                     string text = ctor.NormalizeWhitespace().ToFullString();
                     string replaced = text.Replace("~Disposable", $"~{info.TypeName}");
 
-                    Console.WriteLine(text);
-
                     builder.Add((DestructorDeclarationSyntax)ParseMemberDeclaration(replaced)!);
                 }
             }
 
+            bool hasDirectDisposeMethod = info.DisposeMethod != null &&
+                !info.DisposeMethod.Value.fromDerived;
+            bool hasDirectDisposeBoolMethod = info.DisposeBoolMethod != null &&
+                !info.DisposeBoolMethod.Value.fromDerived;
+            bool hasDirectDisposeAsyncMethod = info.DisposeAsyncMethod != null &&
+                !info.DisposeAsyncMethod.Value.fromDerived;
+            bool hasDirectDisposeAsyncBoolMethod = info.DisposeAsyncBoolMethod != null &&
+                !info.DisposeAsyncBoolMethod.Value.fromDerived;
+
+            bool hasDerivedDisposeMethod = info.DisposeMethod != null &&
+                info.DisposeMethod.Value.fromDerived;
+            bool hasDerivedDisposeBoolMethod = info.DisposeBoolMethod != null &&
+                info.DisposeBoolMethod.Value.fromDerived;
+            bool hasDerivedDisposeAsyncMethod = info.DisposeAsyncMethod != null &&
+                info.DisposeAsyncMethod.Value.fromDerived;
+            bool hasDerivedDisposeAsyncBoolMethod = info.DisposeAsyncBoolMethod != null &&
+                info.DisposeAsyncBoolMethod.Value.fromDerived;
+
+            bool overridableDisposeMethod = info.DisposeMethod != null &&
+                info.DisposeMethod.Value.fromDerived &&
+                (info.DisposeMethod.Value.symbol.IsVirtual || info.DisposeMethod.Value.symbol.IsOverride);
+            bool overridableDisposeBoolMethod = info.DisposeBoolMethod != null &&
+                info.DisposeBoolMethod.Value.fromDerived &&
+                (info.DisposeBoolMethod.Value.symbol.IsVirtual || info.DisposeBoolMethod.Value.symbol.IsOverride);
+            bool overridableDisposeAsyncMethod = info.DisposeAsyncMethod != null &&
+                info.DisposeAsyncMethod.Value.fromDerived &&
+                (info.DisposeAsyncMethod.Value.symbol.IsVirtual || info.DisposeAsyncMethod.Value.symbol.IsOverride);
+            bool overridableDisposeAsyncBoolMethod = info.DisposeAsyncBoolMethod != null &&
+                info.DisposeAsyncBoolMethod.Value.fromDerived &&
+                (info.DisposeAsyncBoolMethod.Value.symbol.IsVirtual || info.DisposeAsyncBoolMethod.Value.symbol.IsOverride);
+
             MemberDeclarationSyntax? FixupFilteredMemberDeclaration(MemberDeclarationSyntax member)
             {
-                // Remove Dispose(bool) if the target type already has the method
-                if (info.DisposeBoolMethod != null &&
-                    member is MethodDeclarationSyntax disposeBoolSyntax &&
-                    disposeBoolSyntax.Identifier.ValueText == "Dispose" &&
-                    disposeBoolSyntax.ParameterList.Parameters.Count == 1 &&
-                    disposeBoolSyntax.ParameterList.Parameters[0].Type?.ToString() == "bool")
+                if (member is MethodDeclarationSyntax methodDeclarationSyntax)
                 {
-                    return null;
-                }
+                    // Normal Dispose() if the target has no derived disposable implementation
+                    if (methodDeclarationSyntax.Identifier.ValueText == "Dispose_Normal" &&
+                        methodDeclarationSyntax.ParameterList.Parameters.Count == 0)
+                    {
+                        if (!hasDirectDisposeMethod && !hasDerivedDisposeMethod)
+                        {
+                            return methodDeclarationSyntax
+                                .WithIdentifier(Identifier("Dispose"));
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
 
-                // Remove DisposeAsync(bool) if the target type already has the method
-                if (info.DisposeAsyncBoolMethod != null &&
-                    member is MethodDeclarationSyntax disposeAsyncBoolSyntax &&
-                    disposeAsyncBoolSyntax.Identifier.ValueText == "DisposeAsync" &&
-                    disposeAsyncBoolSyntax.ParameterList.Parameters.Count == 1 &&
-                    disposeAsyncBoolSyntax.ParameterList.Parameters[0].Type?.ToString() == "bool")
-                {
-                    return null;
-                }
+                    // Normal Dispose(bool) if the target has no derived disposable implementation
+                    if (methodDeclarationSyntax.Identifier.ValueText == "Dispose_Normal" &&
+                        methodDeclarationSyntax.ParameterList.Parameters.Count == 1 &&
+                        methodDeclarationSyntax.ParameterList.Parameters[0].Type?.ToString() == "bool")
+                    {
+                        if (!hasDirectDisposeBoolMethod && !hasDerivedDisposeBoolMethod)
+                        {
+                            return methodDeclarationSyntax
+                                .WithIdentifier(Identifier("Dispose"));
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
 
-                // Remove Dispose() if the target type already has the method
-                if (info.DisposeMethod != null &&
-                    member is MethodDeclarationSyntax disposeSyntax &&
-                    disposeSyntax.Identifier.ValueText == "Dispose" &&
-                    disposeSyntax.ParameterList.Parameters.Count == 0)
-                {
-                    return null;
-                }
+                    // Normal DisposeAsync() if the target has no derived disposable implementation
+                    if (methodDeclarationSyntax.Identifier.ValueText == "DisposeAsync_Normal" &&
+                        methodDeclarationSyntax.ParameterList.Parameters.Count == 0)
+                    {
+                        if (!hasDirectDisposeAsyncMethod && !hasDerivedDisposeAsyncMethod)
+                        {
+                            return methodDeclarationSyntax
+                                .WithIdentifier(Identifier("DisposeAsync"));
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
 
-                // Remove DisposeAsync() if the target type already has the method
-                if (info.DisposeAsyncMethod != null &&
-                    member is MethodDeclarationSyntax disposeAsyncSyntax &&
-                    disposeAsyncSyntax.Identifier.ValueText == "DisposeAsync" &&
-                    disposeAsyncSyntax.ParameterList.Parameters.Count == 0)
-                {
-                    return null;
+                    // Normal DisposeAsync(bool) if the target has no derived disposable implementation
+                    if (methodDeclarationSyntax.Identifier.ValueText == "DisposeAsync_Normal" &&
+                        methodDeclarationSyntax.ParameterList.Parameters.Count == 1 &&
+                        methodDeclarationSyntax.ParameterList.Parameters[0].Type?.ToString() == "bool")
+                    {
+                        if (!hasDirectDisposeAsyncBoolMethod && !hasDerivedDisposeAsyncBoolMethod)
+                        {
+                            return methodDeclarationSyntax
+                                .WithIdentifier(Identifier("DisposeAsync"));
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+
+                    // Override Dispose() if the target has derived disposable implementation
+                    if (methodDeclarationSyntax.Identifier.ValueText == "Dispose_Override" &&
+                        methodDeclarationSyntax.ParameterList.Parameters.Count == 0)
+                    {
+                        if (!hasDirectDisposeMethod && hasDerivedDisposeMethod && overridableDisposeMethod)
+                        {
+                            return methodDeclarationSyntax
+                                .WithIdentifier(Identifier("Dispose"));
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+
+                    // Override Dispose(bool) if the target has derived disposable implementation
+                    if (methodDeclarationSyntax.Identifier.ValueText == "Dispose_Override" &&
+                        methodDeclarationSyntax.ParameterList.Parameters.Count == 1 &&
+                        methodDeclarationSyntax.ParameterList.Parameters[0].Type?.ToString() == "bool")
+                    {
+                        if (!hasDirectDisposeBoolMethod && hasDerivedDisposeBoolMethod && overridableDisposeBoolMethod && !hasDirectDisposeMethod && hasDerivedDisposeMethod && overridableDisposeMethod)
+                        {
+                            return methodDeclarationSyntax
+                                .WithIdentifier(Identifier("Dispose"));
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+
+                    // Override Dispose(bool) if the target has derived disposable implementation
+                    if (methodDeclarationSyntax.Identifier.ValueText == "Dispose_OverrideCross" &&
+                        methodDeclarationSyntax.ParameterList.Parameters.Count == 1 &&
+                        methodDeclarationSyntax.ParameterList.Parameters[0].Type?.ToString() == "bool")
+                    {
+                        if (!hasDirectDisposeBoolMethod && hasDerivedDisposeBoolMethod && overridableDisposeBoolMethod && (hasDirectDisposeMethod || !hasDerivedDisposeMethod || !overridableDisposeMethod))
+                        {
+                            return methodDeclarationSyntax
+                                .WithIdentifier(Identifier("Dispose"));
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+
+                    // Override DisposeAsync() if the target has derived disposable implementation
+                    if (methodDeclarationSyntax.Identifier.ValueText == "DisposeAsync_Override" &&
+                        methodDeclarationSyntax.ParameterList.Parameters.Count == 0)
+                    {
+                        if (!hasDirectDisposeAsyncMethod && hasDerivedDisposeAsyncMethod && overridableDisposeAsyncMethod)
+                        {
+                            return methodDeclarationSyntax
+                                .WithIdentifier(Identifier("DisposeAsync"));
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+
+                    // Override DisposeAsync(bool) if the target has derived disposable implementation
+                    if (methodDeclarationSyntax.Identifier.ValueText == "DisposeAsync_Override" &&
+                        methodDeclarationSyntax.ParameterList.Parameters.Count == 1 &&
+                        methodDeclarationSyntax.ParameterList.Parameters[0].Type?.ToString() == "bool")
+                    {
+                        if (!hasDirectDisposeAsyncBoolMethod && hasDerivedDisposeAsyncBoolMethod && overridableDisposeAsyncBoolMethod && !hasDirectDisposeAsyncMethod && hasDerivedDisposeAsyncMethod && overridableDisposeAsyncMethod)
+                        {
+                            return methodDeclarationSyntax
+                                .WithIdentifier(Identifier("DisposeAsync"));
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+
+                    // Override DisposeAsync(bool) if the target has derived disposable implementation
+                    if (methodDeclarationSyntax.Identifier.ValueText == "DisposeAsync_OverrideCross" &&
+                        methodDeclarationSyntax.ParameterList.Parameters.Count == 1 &&
+                        methodDeclarationSyntax.ParameterList.Parameters[0].Type?.ToString() == "bool")
+                    {
+                        if (!hasDirectDisposeAsyncBoolMethod && hasDerivedDisposeAsyncBoolMethod && overridableDisposeAsyncBoolMethod && (hasDirectDisposeAsyncMethod || !hasDerivedDisposeAsyncMethod || !overridableDisposeAsyncMethod))
+                        {
+                            return methodDeclarationSyntax
+                                .WithIdentifier(Identifier("DisposeAsync"));
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
                 }
 
                 return member;
