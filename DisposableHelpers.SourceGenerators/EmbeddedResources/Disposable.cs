@@ -178,6 +178,24 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
     }
 
     /// <summary>
+    /// Returns a <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is fully disposed.
+    /// </summary>
+    /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposed.</returns>
+    public global::System.Threading.CancellationToken CancelWhenDisposed()
+    {
+        return cancelOnDisposedCts.Token;
+    }
+
+    /// <summary>
+    /// Returns a <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object starts disposing.
+    /// </summary>
+    /// <returns>A <see cref="global::System.Threading.CancellationToken"/> that will be canceled when the object is disposing.</returns>
+    public global::System.Threading.CancellationToken CancelWhenDisposing()
+    {
+        return cancelOnDisposingCts.Token;
+    }
+
+    /// <summary>
     /// Verifies that this object is not in the process of disposing, throwing an exception if it is.
     /// </summary>
     protected void VerifyNotDisposing()
