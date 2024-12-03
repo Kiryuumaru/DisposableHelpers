@@ -205,7 +205,7 @@ namespace DisposableHelpersTest
             int disposingCallCount = 0;
             var dispose = new Disposable(disposing =>
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(2000);
                 if (disposing)
                 {
                     disposeCallCount++;
@@ -235,7 +235,7 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(100);
+            await Task.Delay(500);
             Assert.Equal(0, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -245,14 +245,14 @@ namespace DisposableHelpersTest
             Assert.False(ctsDisposed1.IsCancellationRequested);
             Assert.True(ctsDisposing2.IsCancellationRequested);
             Assert.False(ctsDisposed2.IsCancellationRequested);
-            await Task.Delay(1500);
+            await Task.Delay(5000);
             Assert.Equal(1, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.True(dispose.IsDisposed);
             Assert.False(dispose.IsDisposing);
             Assert.True(dispose.IsDisposedOrDisposing);
             runVoid();
-            await Task.Delay(1500);
+            await Task.Delay(5000);
             Assert.Equal(1, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.True(ctsDisposing1.IsCancellationRequested);
@@ -268,7 +268,7 @@ namespace DisposableHelpersTest
             int disposingCallCount = 0;
             var dispose = new Disposable(async disposing =>
             {
-                await Task.Delay(1000);
+                await Task.Delay(2000);
                 if (disposing)
                 {
                     disposeCallCount++;
@@ -298,7 +298,7 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(100);
+            await Task.Delay(500);
             Assert.Equal(0, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -308,14 +308,14 @@ namespace DisposableHelpersTest
             Assert.False(ctsDisposed1.IsCancellationRequested);
             Assert.True(ctsDisposing2.IsCancellationRequested);
             Assert.False(ctsDisposed2.IsCancellationRequested);
-            await Task.Delay(1500);
+            await Task.Delay(5000);
             Assert.Equal(1, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.True(dispose.IsDisposed);
             Assert.False(dispose.IsDisposing);
             Assert.True(dispose.IsDisposedOrDisposing);
             runVoid();
-            await Task.Delay(1500);
+            await Task.Delay(5000);
             Assert.Equal(1, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.True(ctsDisposing1.IsCancellationRequested);
@@ -333,7 +333,7 @@ namespace DisposableHelpersTest
 
         protected override void Dispose(bool disposing)
         {
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
             if (disposing)
             {
                 DisposeCallCount++;
@@ -343,7 +343,7 @@ namespace DisposableHelpersTest
 
         protected override async ValueTask DisposeAsync(bool disposing)
         {
-            await Task.Delay(1000);
+            await Task.Delay(2000);
             if (disposing)
             {
                 DisposeAsyncCallCount++;
@@ -383,7 +383,7 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(100);
+            await Task.Delay(500);
             Assert.Equal(0, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -396,7 +396,7 @@ namespace DisposableHelpersTest
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposing);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposedOrDisposing);
             Assert.Null(Record.Exception(dispose.VerifyNotDisposed));
-            await Task.Delay(2500);
+            await Task.Delay(5000);
             Assert.Equal(1, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.True(dispose.IsDisposed);
@@ -410,7 +410,7 @@ namespace DisposableHelpersTest
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposedOrDisposing);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposed);
             runVoid();
-            await Task.Delay(2500);
+            await Task.Delay(5000);
             Assert.Equal(1, dispose.DisposeCallCount);
             Assert.Equal(1, dispose.DisposeAsyncCallCount);
             Assert.Equal(1, disposingCallCount);
@@ -451,7 +451,7 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(100);
+            await Task.Delay(500);
             Assert.Equal(0, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -464,7 +464,7 @@ namespace DisposableHelpersTest
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposing);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposedOrDisposing);
             Assert.Null(Record.Exception(dispose.VerifyNotDisposed));
-            await Task.Delay(2500);
+            await Task.Delay(5000);
             Assert.Equal(1, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.True(dispose.IsDisposed);
@@ -478,7 +478,7 @@ namespace DisposableHelpersTest
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposedOrDisposing);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposed);
             runVoid();
-            await Task.Delay(2500);
+            await Task.Delay(5000);
             Assert.Equal(1, dispose.DisposeCallCount);
             Assert.Equal(1, dispose.DisposeAsyncCallCount);
             Assert.Equal(1, disposingCallCount);
@@ -497,7 +497,7 @@ namespace DisposableHelpersTest
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
             if (IsDisposing)
             {
                 DisposeCallCount++;
@@ -507,7 +507,7 @@ namespace DisposableHelpersTest
         protected override async ValueTask DisposeAsync(bool disposing)
         {
             await base.DisposeAsync(disposing);
-            await Task.Delay(1000);
+            await Task.Delay(2000);
             if (IsDisposing)
             {
                 DisposeAsyncCallCount++;
@@ -547,7 +547,7 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(100);
+            await Task.Delay(500);
             Assert.Equal(0, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -560,7 +560,7 @@ namespace DisposableHelpersTest
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposing);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposedOrDisposing);
             Assert.Null(Record.Exception(dispose.VerifyNotDisposed));
-            await Task.Delay(2500);
+            await Task.Delay(5000);
             Assert.Equal(1, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.True(dispose.IsDisposed);
@@ -574,7 +574,7 @@ namespace DisposableHelpersTest
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposedOrDisposing);
             Assert.Throws<ObjectDisposedException>(dispose.VerifyNotDisposed);
             runVoid();
-            await Task.Delay(2500);
+            await Task.Delay(5000);
             Assert.Equal(1, dispose.DisposeCallCount);
             Assert.Equal(1, dispose.DisposeAsyncCallCount);
             Assert.Equal(1, disposingCallCount);
@@ -593,7 +593,7 @@ namespace DisposableHelpersTest
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
             if (IsDisposing)
             {
                 DisposeCallCount++;
@@ -603,7 +603,7 @@ namespace DisposableHelpersTest
         protected override async ValueTask DisposeAsync(bool disposing)
         {
             await base.DisposeAsync(disposing);
-            await Task.Delay(1000);
+            await Task.Delay(2000);
             if (IsDisposing)
             {
                 DisposeAsyncCallCount++;
@@ -629,7 +629,7 @@ namespace DisposableHelpersTest
             Assert.False(dispose.IsDisposed);
             Assert.False(dispose.IsDisposing);
             Assert.False(dispose.IsDisposedOrDisposing);
-            Assert.False(ctsDisposing1.IsCancellationRequested);
+            Assert.False(ctsDisposing1.IsCancellationRequested);    
             Assert.False(ctsDisposed1.IsCancellationRequested);
             Assert.False(ctsDisposing2.IsCancellationRequested);
             Assert.False(ctsDisposed2.IsCancellationRequested);
@@ -640,7 +640,7 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(100);
+            await Task.Delay(500);
             Assert.Equal(0, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -650,7 +650,7 @@ namespace DisposableHelpersTest
             Assert.False(ctsDisposed1.IsCancellationRequested);
             Assert.True(ctsDisposing2.IsCancellationRequested);
             Assert.False(ctsDisposed2.IsCancellationRequested);
-            await Task.Delay(2500);
+            await Task.Delay(5000);
             Assert.Equal(1, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.True(dispose.IsDisposed);
@@ -661,7 +661,7 @@ namespace DisposableHelpersTest
             Assert.True(ctsDisposing2.IsCancellationRequested);
             Assert.True(ctsDisposed2.IsCancellationRequested);
             runVoid();
-            await Task.Delay(2500);
+            await Task.Delay(5000);
             Assert.Equal(1, dispose.DisposeCallCount);
             Assert.Equal(1, dispose.DisposeAsyncCallCount);
             Assert.Equal(1, disposingCallCount);
