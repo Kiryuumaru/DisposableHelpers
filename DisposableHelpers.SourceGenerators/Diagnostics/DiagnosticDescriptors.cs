@@ -19,11 +19,11 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor UnsupportedCSharpLanguageVersionError = new DiagnosticDescriptor(
         id: "DH0001",
         title: "Unsupported C# language version",
-        messageFormat: "The source generator features from the MVVM Toolkit require consuming projects to set the C# language version to at least C# 8.0",
+        messageFormat: "The source generator features require consuming projects to set the C# language version to at least C# 8.0",
         category: typeof(CSharpParseOptions).FullName,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "The source generator features from the MVVM Toolkit require consuming projects to set the C# language version to at least C# 8.0. Make sure to add <LangVersion>8.0</LangVersion> (or above) to your .csproj file.",
+        description: "The source generator features require consuming projects to set the C# language version to at least C# 8.0. Make sure to add <LangVersion>8.0</LangVersion> (or above) to your .csproj file.",
         helpLinkUri: "https://github.com/Kiryuumaru/DisposableHelpers");
 
     public static readonly DiagnosticDescriptor InvalidAttributeCombinationForDisposableAttributeError = new DiagnosticDescriptor(
