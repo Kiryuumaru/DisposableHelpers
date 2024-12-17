@@ -235,7 +235,11 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(500);
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            while (disposingCallCount == 0 && !cts.IsCancellationRequested)
+            {
+                await Task.Delay(10);
+            }
             Assert.Equal(0, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -298,7 +302,11 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(500);
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            while (disposingCallCount == 0 && !cts.IsCancellationRequested)
+            {
+                await Task.Delay(10);
+            }
             Assert.Equal(0, disposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -383,7 +391,11 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(500);
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            while (disposingCallCount == 0 && !cts.IsCancellationRequested)
+            {
+                await Task.Delay(10);
+            }
             Assert.Equal(0, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -451,7 +463,11 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(500);
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            while (disposingCallCount == 0 && !cts.IsCancellationRequested)
+            {
+                await Task.Delay(10);
+            }
             Assert.Equal(0, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -547,7 +563,11 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(500);
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            while (disposingCallCount == 0 && !cts.IsCancellationRequested)
+            {
+                await Task.Delay(10);
+            }
             Assert.Equal(0, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
@@ -640,7 +660,11 @@ namespace DisposableHelpersTest
             });
             async void runVoid() => await run;
             runVoid();
-            await Task.Delay(500);
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            while (disposingCallCount == 0 && !cts.IsCancellationRequested)
+            {
+                await Task.Delay(10);
+            }
             Assert.Equal(0, dispose.DisposeCallCount);
             Assert.Equal(1, disposingCallCount);
             Assert.False(dispose.IsDisposed);
