@@ -7,3 +7,7 @@ updates:
     open-pull-requests-limit: 100
     schedule:
       interval: "daily"
+
+    ignore:
+      - dependency-name: "Microsoft.CodeAnalysis.CSharp"
+        versions: [ ">=4.13.0" ]
