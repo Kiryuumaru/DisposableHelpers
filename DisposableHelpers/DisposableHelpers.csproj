@@ -45,6 +45,8 @@
 
 	<ItemGroup Label="Package">
 
+	  <PackageReference Include="Microsoft.NET.ILLink.Analyzers" Version="7.0.100-1.23401.1" />
+
 		<!-- Include the custom .targets file to check the source generator (.NET 6 is not needed as it guarantees Roslyn 4.x) -->
 		<None Include="DisposableHelpers.targets" PackagePath="buildTransitive\netstandard2.0" Pack="true" />
 		<None Include="DisposableHelpers.targets" PackagePath="buildTransitive\netstandard2.1" Pack="true" />
@@ -52,10 +54,7 @@
 		<None Include="DisposableHelpers.targets" PackagePath="build\netstandard2.1" Pack="true" />
 
 		<!-- Pack the source generator to the right package folder -->
-		<None Include="..\DisposableHelpers.SourceGenerators\bin\$(Configuration)\netstandard2.0\DisposableHelpers.SourceGenerators.dll"
-			  PackagePath="analyzers\dotnet\roslyn4.0\cs"
-			  Pack="true"
-			  Visible="false" />
+		<None Include="..\DisposableHelpers.SourceGenerators\bin\$(Configuration)\netstandard2.0\DisposableHelpers.SourceGenerators.dll" PackagePath="analyzers\dotnet\roslyn4.0\cs" Pack="true" Visible="false" />
 	</ItemGroup>
 
 </Project>
