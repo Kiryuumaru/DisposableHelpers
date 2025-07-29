@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
@@ -28,7 +28,7 @@
 		<None Include="..\README.md" Pack="true" PackagePath="" />
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net9.0'">
+	<PropertyGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
 		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 		<IsTrimmable>true</IsTrimmable>
 	</PropertyGroup>
@@ -42,10 +42,12 @@
 	<ItemGroup>
 		<ProjectReference Include="..\DisposableHelpers.SourceGenerators\DisposableHelpers.SourceGenerators.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" PrivateAssets="contentfiles;build" />
 	</ItemGroup>
-
+	<!-- 
+	<ItemGroup Label="Package" Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Microsoft.NET.ILLink.Analyzers" Version="7.0.100-1.23401.1" />
+	</ItemGroup>
+	-->
 	<ItemGroup Label="Package">
-
-	  <PackageReference Include="Microsoft.NET.ILLink.Analyzers" Version="7.0.100-1.23401.1" />
 
 		<!-- Include the custom .targets file to check the source generator (.NET 6 is not needed as it guarantees Roslyn 4.x) -->
 		<None Include="DisposableHelpers.targets" PackagePath="buildTransitive\netstandard2.0" Pack="true" />
