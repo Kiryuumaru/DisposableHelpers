@@ -60,6 +60,11 @@ class Build : BaseNukeBuildHelpers
             DotNetTasks.DotNetClean(_ => _
                 .SetProject(RootDirectory / "DisposableHelpersTest" / "DisposableHelpersTest.csproj"));
             DotNetTasks.DotNetTest(_ => _
+                .SetProcessAdditionalArguments(
+                    "--logger \"GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true\" " +
+                    "-- " +
+                    "RunConfiguration.CollectSourceInformation=true " +
+                    "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencovere ")
                 .SetProjectFile(RootDirectory / "DisposableHelpersTest" / "DisposableHelpersTest.csproj"));
         });
 
