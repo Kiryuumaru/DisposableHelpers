@@ -70,6 +70,11 @@ jobs:
         fetch-tags: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_DISPOSABLEHELPERSBUILD_CHECKOUT_FETCH_TAGS }}
         submodules: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_DISPOSABLEHELPERSBUILD_CHECKOUT_SUBMODULES }}
         persist-credentials: true
+    - name: Download disposable_helpers pre_test artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./.nuke/temp/artifacts-download
+        pattern: pre_test___disposable_helpers___*
     - name: Cache Run
       uses: actions/cache@v4
       with:
@@ -81,11 +86,18 @@ jobs:
     - id: NUKE_RUN
       name: Run Nuke DisposableHelpersBuild
       run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_DISPOSABLEHELPERSBUILD_RUN_SCRIPT }} Run --args "DisposableHelpersBuild"
-    - name: Upload Artifacts
+    - name: Upload disposable_helpers build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build___disposable_helpers___DISPOSABLEHELPERSBUILD
-        path: ./.nuke/temp/artifacts-upload/*
+        path: ./.nuke/temp/artifacts-upload/disposable_helpers/*
+        if-no-files-found: error
+        retention-days: 1
+    - name: Upload common build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build___$common___DISPOSABLEHELPERSBUILD
+        path: ./.nuke/temp/artifacts-upload/$common/*
         if-no-files-found: error
         retention-days: 1
     needs:
@@ -103,10 +115,16 @@ jobs:
         fetch-tags: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_DISPOSABLEHELPERSTEST_CHECKOUT_FETCH_TAGS }}
         submodules: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_DISPOSABLEHELPERSTEST_CHECKOUT_SUBMODULES }}
         persist-credentials: true
-    - name: Download Artifacts
+    - name: Download disposable_helpers pre_test artifacts
       uses: actions/download-artifact@v4
       with:
         path: ./.nuke/temp/artifacts-download
+        pattern: pre_test___disposable_helpers___*
+    - name: Download disposable_helpers build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./.nuke/temp/artifacts-download
+        pattern: build___disposable_helpers___*
     - name: Cache Run
       uses: actions/cache@v4
       with:
@@ -118,6 +136,20 @@ jobs:
     - id: NUKE_RUN
       name: Run Nuke DisposableHelpersTest
       run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_DISPOSABLEHELPERSTEST_RUN_SCRIPT }} Run --args "DisposableHelpersTest"
+    - name: Upload disposable_helpers post_test artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: post_test___disposable_helpers___DISPOSABLEHELPERSTEST
+        path: ./.nuke/temp/artifacts-upload/disposable_helpers/*
+        if-no-files-found: error
+        retention-days: 1
+    - name: Upload common post_test artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: post_test___$common___DISPOSABLEHELPERSTEST
+        path: ./.nuke/temp/artifacts-upload/$common/*
+        if-no-files-found: error
+        retention-days: 1
     needs:
     - PRE_SETUP
     - DISPOSABLEHELPERSBUILD
@@ -134,11 +166,21 @@ jobs:
         fetch-tags: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_DISPOSABLEHELPERSPUBLISH_CHECKOUT_FETCH_TAGS }}
         submodules: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_DISPOSABLEHELPERSPUBLISH_CHECKOUT_SUBMODULES }}
         persist-credentials: true
-    - name: Download artifacts
+    - name: Download disposable_helpers pre_test artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./.nuke/temp/artifacts-download
+        pattern: pre_test___disposable_helpers___*
+    - name: Download disposable_helpers build artifacts
       uses: actions/download-artifact@v4
       with:
         path: ./.nuke/temp/artifacts-download
         pattern: build___disposable_helpers___*
+    - name: Download disposable_helpers post_test artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./.nuke/temp/artifacts-download
+        pattern: post_test___disposable_helpers___*
     - name: Cache Run
       uses: actions/cache@v4
       with:
@@ -150,11 +192,11 @@ jobs:
     - id: NUKE_RUN
       name: Run Nuke DisposableHelpersPublish
       run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_DISPOSABLEHELPERSPUBLISH_RUN_SCRIPT }} Run --args "DisposableHelpersPublish"
-    - name: Upload Artifacts
+    - name: Upload common publish artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: publish___disposable_helpers___DISPOSABLEHELPERSPUBLISH
-        path: ./.nuke/temp/artifacts-upload/*
+        name: publish___$common___DISPOSABLEHELPERSPUBLISH
+        path: ./.nuke/temp/artifacts-upload/$common/*
         if-no-files-found: error
         retention-days: 1
     needs:
@@ -175,11 +217,11 @@ jobs:
         fetch-tags: true
         submodules: recursive
         persist-credentials: true
-    - name: Download Artifacts
+    - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
         path: ./.nuke/temp/artifacts-download
-        pattern: publish___*
+        pattern: '*___*'
     - name: Run Nuke PipelinePostSetup
       run: chmod +x ./build.sh && ./build.sh PipelinePostSetup
     needs:
