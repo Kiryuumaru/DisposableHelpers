@@ -48,7 +48,7 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
 
     private readonly global::System.Threading.CancellationTokenSource cancelOnDisposingCts = new global::System.Threading.CancellationTokenSource();
     private readonly global::System.Threading.CancellationTokenSource cancelOnDisposedCts = new global::System.Threading.CancellationTokenSource();
-    private readonly global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource> linkedCancellationTokenSources = new global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource>();
+    private readonly global::System.Collections.Generic.Dictionary<global::System.Threading.CancellationTokenSource, global::System.Threading.CancellationTokenRegistration> linkedCancellationTokenSources = new global::System.Collections.Generic.Dictionary<global::System.Threading.CancellationTokenSource, global::System.Threading.CancellationTokenRegistration>();
     private readonly object linkedCancellationTokenSourcesLock = new object();
 
     /// <summary>
@@ -71,18 +71,19 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
         Disposing = null;
 
         // Dispose linked CTS before calling user dispose logic to prevent additions during disposal
-        global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource> ctsToDispose;
+        global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.Threading.CancellationTokenSource, global::System.Threading.CancellationTokenRegistration>> ctsToDispose;
         lock (linkedCancellationTokenSourcesLock)
         {
-            ctsToDispose = new global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource>(linkedCancellationTokenSources);
+            ctsToDispose = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.Threading.CancellationTokenSource, global::System.Threading.CancellationTokenRegistration>>(linkedCancellationTokenSources);
             linkedCancellationTokenSources.Clear();
         }
 
-        foreach (global::System.Threading.CancellationTokenSource cts in ctsToDispose)
+        foreach (global::System.Collections.Generic.KeyValuePair<global::System.Threading.CancellationTokenSource, global::System.Threading.CancellationTokenRegistration> kvp in ctsToDispose)
         {
             try
             {
-                cts?.Dispose();
+                kvp.Value.Dispose();
+                kvp.Key?.Dispose();
             }
             catch
             {
@@ -113,18 +114,19 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
         Disposing = null;
 
         // Dispose linked CTS before calling user dispose logic to prevent additions during disposal
-        global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource> ctsToDispose;
+        global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.Threading.CancellationTokenSource, global::System.Threading.CancellationTokenRegistration>> ctsToDispose;
         lock (linkedCancellationTokenSourcesLock)
         {
-            ctsToDispose = new global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource>(linkedCancellationTokenSources);
+            ctsToDispose = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.Threading.CancellationTokenSource, global::System.Threading.CancellationTokenRegistration>>(linkedCancellationTokenSources);
             linkedCancellationTokenSources.Clear();
         }
 
-        foreach (global::System.Threading.CancellationTokenSource cts in ctsToDispose)
+        foreach (global::System.Collections.Generic.KeyValuePair<global::System.Threading.CancellationTokenSource, global::System.Threading.CancellationTokenRegistration> kvp in ctsToDispose)
         {
             try
             {
-                cts?.Dispose();
+                kvp.Value.Dispose();
+                kvp.Key?.Dispose();
             }
             catch
             {
@@ -208,7 +210,34 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
                 return token;
             }
 
-            linkedCancellationTokenSources.Add(cts);
+            // Register callback to remove and dispose CTS when canceled
+            global::System.Threading.CancellationTokenRegistration registration = cts.Token.Register(() =>
+            {
+                global::System.Threading.CancellationTokenRegistration reg;
+                lock (linkedCancellationTokenSourcesLock)
+                {
+                    if (linkedCancellationTokenSources.TryGetValue(cts, out reg))
+                    {
+                        linkedCancellationTokenSources.Remove(cts);
+                    }
+                }
+                
+                // Dispose outside the callback context
+                global::System.Threading.Tasks.Task.Run(() =>
+                {
+                    try
+                    {
+                        reg.Dispose();
+                        cts.Dispose();
+                    }
+                    catch
+                    {
+                        // Suppress exceptions during disposal
+                    }
+                });
+            });
+
+            linkedCancellationTokenSources.Add(cts, registration);
         }
 
         return cts.Token;
@@ -239,7 +268,34 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
                 return token;
             }
 
-            linkedCancellationTokenSources.Add(cts);
+            // Register callback to remove and dispose CTS when canceled
+            global::System.Threading.CancellationTokenRegistration registration = cts.Token.Register(() =>
+            {
+                global::System.Threading.CancellationTokenRegistration reg;
+                lock (linkedCancellationTokenSourcesLock)
+                {
+                    if (linkedCancellationTokenSources.TryGetValue(cts, out reg))
+                    {
+                        linkedCancellationTokenSources.Remove(cts);
+                    }
+                }
+                
+                // Dispose outside the callback context
+                global::System.Threading.Tasks.Task.Run(() =>
+                {
+                    try
+                    {
+                        reg.Dispose();
+                        cts.Dispose();
+                    }
+                    catch
+                    {
+                        // Suppress exceptions during disposal
+                    }
+                });
+            });
+
+            linkedCancellationTokenSources.Add(cts, registration);
         }
 
         return cts.Token;
