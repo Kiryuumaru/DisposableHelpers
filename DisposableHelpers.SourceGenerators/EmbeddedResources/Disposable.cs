@@ -48,6 +48,8 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
 
     private readonly global::System.Threading.CancellationTokenSource cancelOnDisposingCts = new global::System.Threading.CancellationTokenSource();
     private readonly global::System.Threading.CancellationTokenSource cancelOnDisposedCts = new global::System.Threading.CancellationTokenSource();
+    private readonly global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource> linkedCancellationTokenSources = new global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource>();
+    private readonly object linkedCancellationTokenSourcesLock = new object();
 
     /// <summary>
     /// Finalizes an instance of the <see cref="Disposable"/> class.
@@ -68,9 +70,32 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
         OnDisposing();
         Disposing = null;
 
+        // Dispose linked CTS before calling user dispose logic to prevent additions during disposal
+        global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource> ctsToDispose;
+        lock (linkedCancellationTokenSourcesLock)
+        {
+            ctsToDispose = new global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource>(linkedCancellationTokenSources);
+            linkedCancellationTokenSources.Clear();
+        }
+
+        foreach (global::System.Threading.CancellationTokenSource cts in ctsToDispose)
+        {
+            try
+            {
+                cts?.Dispose();
+            }
+            catch
+            {
+                // Suppress exceptions during disposal
+            }
+        }
+
         Dispose(true);
         DisposeAsync(true).AsTask().Wait();
         cancelOnDisposedCts.Cancel();
+
+        cancelOnDisposingCts.Dispose();
+        cancelOnDisposedCts.Dispose();
 
         global::System.GC.SuppressFinalize(this);
         global::System.Threading.Interlocked.Exchange(ref disposeStage, DisposalComplete);
@@ -87,9 +112,32 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
         OnDisposing();
         Disposing = null;
 
+        // Dispose linked CTS before calling user dispose logic to prevent additions during disposal
+        global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource> ctsToDispose;
+        lock (linkedCancellationTokenSourcesLock)
+        {
+            ctsToDispose = new global::System.Collections.Generic.List<global::System.Threading.CancellationTokenSource>(linkedCancellationTokenSources);
+            linkedCancellationTokenSources.Clear();
+        }
+
+        foreach (global::System.Threading.CancellationTokenSource cts in ctsToDispose)
+        {
+            try
+            {
+                cts?.Dispose();
+            }
+            catch
+            {
+                // Suppress exceptions during disposal
+            }
+        }
+
         Dispose(true);
         await DisposeAsync(true);
         cancelOnDisposedCts.Cancel();
+
+        cancelOnDisposingCts.Dispose();
+        cancelOnDisposedCts.Dispose();
 
         global::System.GC.SuppressFinalize(this);
         global::System.Threading.Interlocked.Exchange(ref disposeStage, DisposalComplete);
@@ -146,11 +194,21 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
         ct.Add(cancelOnDisposedCts.Token);
         ct.AddRange(cancellationTokens);
 
-        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(ct.ToArray());
+        global::System.Threading.CancellationTokenSource cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(ct.ToArray());
 
-        if (IsDisposed)
+        // Check disposal status while holding lock to prevent race condition
+        lock (linkedCancellationTokenSourcesLock)
         {
-            cts.Cancel();
+            if (IsDisposed)
+            {
+                // Already disposed, cancel and dispose immediately
+                cts.Cancel();
+                global::System.Threading.CancellationToken token = cts.Token;
+                cts.Dispose();
+                return token;
+            }
+
+            linkedCancellationTokenSources.Add(cts);
         }
 
         return cts.Token;
@@ -167,11 +225,21 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
         ct.Add(cancelOnDisposingCts.Token);
         ct.AddRange(cancellationTokens);
 
-        var cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(ct.ToArray());
+        global::System.Threading.CancellationTokenSource cts = global::System.Threading.CancellationTokenSource.CreateLinkedTokenSource(ct.ToArray());
 
-        if (IsDisposedOrDisposing)
+        // Check disposal status while holding lock to prevent race condition
+        lock (linkedCancellationTokenSourcesLock)
         {
-            cts.Cancel();
+            if (IsDisposedOrDisposing)
+            {
+                // Already disposing/disposed, cancel and dispose immediately
+                cts.Cancel();
+                global::System.Threading.CancellationToken token = cts.Token;
+                cts.Dispose();
+                return token;
+            }
+
+            linkedCancellationTokenSources.Add(cts);
         }
 
         return cts.Token;
