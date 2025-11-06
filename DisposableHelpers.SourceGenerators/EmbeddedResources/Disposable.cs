@@ -83,6 +83,14 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
             try
             {
                 kvp.Value.Dispose();
+            }
+            catch
+            {
+                // Suppress exceptions during disposal
+            }
+
+            try
+            {
                 kvp.Key?.Dispose();
             }
             catch
