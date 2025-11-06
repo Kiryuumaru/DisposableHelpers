@@ -211,31 +211,48 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
             }
 
             // Register callback to remove and dispose CTS when canceled
-            global::System.Threading.CancellationTokenRegistration registration = cts.Token.Register(() =>
-            {
-                global::System.Threading.CancellationTokenRegistration reg;
-                lock (linkedCancellationTokenSourcesLock)
+            // The callback uses useSynchronizationContext: false to ensure it runs on thread pool
+            global::System.Threading.CancellationTokenRegistration registration = cts.Token.Register(
+                state =>
                 {
-                    if (linkedCancellationTokenSources.TryGetValue(cts, out reg))
+                    global::System.Threading.CancellationTokenSource ctsToClean = (global::System.Threading.CancellationTokenSource)state;
+                    global::System.Threading.CancellationTokenRegistration regToClean = default;
+                    bool found = false;
+
+                    lock (linkedCancellationTokenSourcesLock)
                     {
-                        linkedCancellationTokenSources.Remove(cts);
+                        if (linkedCancellationTokenSources.TryGetValue(ctsToClean, out regToClean))
+                        {
+                            linkedCancellationTokenSources.Remove(ctsToClean);
+                            found = true;
+                        }
                     }
-                }
-                
-                // Dispose outside the callback context
-                global::System.Threading.Tasks.Task.Run(() =>
-                {
-                    try
+
+                    // Dispose the registration first to break the parent->child reference
+                    // Then dispose the CTS itself
+                    if (found)
                     {
-                        reg.Dispose();
-                        cts.Dispose();
+                        try
+                        {
+                            regToClean.Dispose();
+                        }
+                        catch
+                        {
+                            // Suppress exceptions during disposal
+                        }
+
+                        try
+                        {
+                            ctsToClean.Dispose();
+                        }
+                        catch
+                        {
+                            // Suppress exceptions during disposal
+                        }
                     }
-                    catch
-                    {
-                        // Suppress exceptions during disposal
-                    }
-                });
-            });
+                },
+                cts,
+                useSynchronizationContext: false);
 
             linkedCancellationTokenSources.Add(cts, registration);
         }
@@ -269,31 +286,48 @@ public class Disposable : global::System.IDisposable, global::System.IAsyncDispo
             }
 
             // Register callback to remove and dispose CTS when canceled
-            global::System.Threading.CancellationTokenRegistration registration = cts.Token.Register(() =>
-            {
-                global::System.Threading.CancellationTokenRegistration reg;
-                lock (linkedCancellationTokenSourcesLock)
+            // The callback uses useSynchronizationContext: false to ensure it runs on thread pool
+            global::System.Threading.CancellationTokenRegistration registration = cts.Token.Register(
+                state =>
                 {
-                    if (linkedCancellationTokenSources.TryGetValue(cts, out reg))
+                    global::System.Threading.CancellationTokenSource ctsToClean = (global::System.Threading.CancellationTokenSource)state;
+                    global::System.Threading.CancellationTokenRegistration regToClean = default;
+                    bool found = false;
+
+                    lock (linkedCancellationTokenSourcesLock)
                     {
-                        linkedCancellationTokenSources.Remove(cts);
+                        if (linkedCancellationTokenSources.TryGetValue(ctsToClean, out regToClean))
+                        {
+                            linkedCancellationTokenSources.Remove(ctsToClean);
+                            found = true;
+                        }
                     }
-                }
-                
-                // Dispose outside the callback context
-                global::System.Threading.Tasks.Task.Run(() =>
-                {
-                    try
+
+                    // Dispose the registration first to break the parent->child reference
+                    // Then dispose the CTS itself
+                    if (found)
                     {
-                        reg.Dispose();
-                        cts.Dispose();
+                        try
+                        {
+                            regToClean.Dispose();
+                        }
+                        catch
+                        {
+                            // Suppress exceptions during disposal
+                        }
+
+                        try
+                        {
+                            ctsToClean.Dispose();
+                        }
+                        catch
+                        {
+                            // Suppress exceptions during disposal
+                        }
                     }
-                    catch
-                    {
-                        // Suppress exceptions during disposal
-                    }
-                });
-            });
+                },
+                cts,
+                useSynchronizationContext: false);
 
             linkedCancellationTokenSources.Add(cts, registration);
         }
