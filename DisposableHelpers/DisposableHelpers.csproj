@@ -35,7 +35,7 @@
 
 	<!-- .NET Standard 2.0 -->
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.0" />
 	</ItemGroup>
 
 	<!-- Source generator project reference for packing -->
