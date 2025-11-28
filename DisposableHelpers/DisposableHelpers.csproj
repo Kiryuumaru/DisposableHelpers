@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
-		<LangVersion>13</LangVersion>
+		<LangVersion>14</LangVersion>
+		<TargetFrameworks>netstandard2.0;net6.0;net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
 		<IsAotCompatible>true</IsAotCompatible>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -42,9 +42,9 @@
 	<ItemGroup>
 		<ProjectReference Include="..\DisposableHelpers.SourceGenerators\DisposableHelpers.SourceGenerators.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" PrivateAssets="contentfiles;build" />
 	</ItemGroup>
-	
+
 	<ItemGroup Label="Package">
-	
+
 		<!-- Include the custom .targets file to check the source generator (.NET 6 is not needed as it guarantees Roslyn 4.x) -->
 		<None Include="DisposableHelpers.targets" PackagePath="buildTransitive\netstandard2.0" Pack="true" />
 		<None Include="DisposableHelpers.targets" PackagePath="buildTransitive\netstandard2.1" Pack="true" />
