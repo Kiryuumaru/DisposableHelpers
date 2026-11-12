@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DisposableHelpersTest", "Di
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{E80FDFB9-B2F6-4D8B-A412-60EC3A2DCAD4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkflowPatcher.Tests", "build\WorkflowPatcher.Tests\WorkflowPatcher.Tests.csproj", "{4CBD1875-C865-46C6-AC09-49EB446A66F3}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DisposableHelpers.Playground", "DisposableHelpers.Playground\DisposableHelpers.Playground.csproj", "{AC291CBD-91BE-472D-99D7-F8C8DFFB6698}"
 EndProject
 Global
@@ -33,6 +35,10 @@ Global
 		{658C5F56-39A7-4C20-BEE3-C3BC0BA66BE2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E80FDFB9-B2F6-4D8B-A412-60EC3A2DCAD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E80FDFB9-B2F6-4D8B-A412-60EC3A2DCAD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CBD1875-C865-46C6-AC09-49EB446A66F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CBD1875-C865-46C6-AC09-49EB446A66F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CBD1875-C865-46C6-AC09-49EB446A66F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CBD1875-C865-46C6-AC09-49EB446A66F3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AC291CBD-91BE-472D-99D7-F8C8DFFB6698}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AC291CBD-91BE-472D-99D7-F8C8DFFB6698}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC291CBD-91BE-472D-99D7-F8C8DFFB6698}.Release|Any CPU.ActiveCfg = Release|Any CPU
